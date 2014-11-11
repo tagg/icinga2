@@ -35,6 +35,7 @@
 #include "base/context.hpp"
 #include "base/statsfunction.hpp"
 #include "base/exception.hpp"
+#include "base/gc.hpp"
 #include <fstream>
 
 using namespace icinga;
@@ -332,7 +333,7 @@ bool ApiListener::AddListener(const String& node, const String& service)
 		return false;
 	}
 
-	std::thread thread(std::bind(&ApiListener::ListenerThreadProc, this, server));
+	std::thread thread(GC::WrapThread(std::bind(&ApiListener::ListenerThreadProc, this, server)));
 	thread.detach();
 
 	m_Servers.insert(server);
@@ -349,7 +350,7 @@ void ApiListener::ListenerThreadProc(const Socket::Ptr& server)
 	for (;;) {
 		try {
 			Socket::Ptr client = server->Accept();
-			std::thread thread(std::bind(&ApiListener::NewClientHandler, this, client, String(), RoleServer));
+			std::thread thread(GC::WrapThread(std::bind(&ApiListener::NewClientHandler, this, client, String(), RoleServer)));
 			thread.detach();
 		} catch (const std::exception&) {
 			Log(LogCritical, "ApiListener", "Cannot accept new connection.");
@@ -744,7 +745,7 @@ void ApiListener::ApiReconnectTimerHandler(void)
 				continue;
 			}
 
-			std::thread thread(std::bind(&ApiListener::AddConnection, this, endpoint));
+			std::thread thread(GC::WrapThread(std::bind(&ApiListener::AddConnection, this, endpoint)));
 			thread.detach();
 		}
 	}
