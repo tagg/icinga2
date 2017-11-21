@@ -30,17 +30,17 @@
 #include "base/logger.hpp"
 #include "base/exception.hpp"
 #include "base/convert.hpp"
-#include <boost/thread/once.hpp>
+#include <mutex>
 
 using namespace icinga;
 
-static boost::once_flag l_HttpServerConnectionOnceFlag = BOOST_ONCE_INIT;
+static std::once_flag l_HttpServerConnectionOnceFlag;
 static Timer::Ptr l_HttpServerConnectionTimeoutTimer;
 
 HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const TlsStream::Ptr& stream)
 	: m_Stream(stream), m_Seen(Utility::GetTime()), m_CurrentRequest(stream), m_PendingRequests(0)
 {
-	boost::call_once(l_HttpServerConnectionOnceFlag, &HttpServerConnection::StaticInitialize);
+	std::call_once(l_HttpServerConnectionOnceFlag, &HttpServerConnection::StaticInitialize);
 
 	m_RequestQueue.SetName("HttpServerConnection");
 

@@ -26,8 +26,8 @@
 #include "db_ido/dbquery.hpp"
 #include "base/timer.hpp"
 #include "base/ringbuffer.hpp"
-#include <boost/thread/once.hpp>
 #include <boost/thread/mutex.hpp>
+#include <mutex>
 
 #define IDO_CURRENT_SCHEMA_VERSION "1.14.3"
 #define IDO_COMPAT_SCHEMA_VERSION "1.14.3"
@@ -124,7 +124,7 @@ private:
 	void CleanUpHandler(void);
 
 	static Timer::Ptr m_ProgramStatusTimer;
-	static boost::once_flag m_OnceFlag;
+	static std::once_flag m_OnceFlag;
 
 	static void InsertRuntimeVariable(const String& key, const Value& value);
 

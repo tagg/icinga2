@@ -21,7 +21,7 @@
 #include "db_ido/dbconnection.hpp"
 #include "base/objectlock.hpp"
 #include "base/debug.hpp"
-#include <boost/thread/once.hpp>
+#include <mutex>
 
 using namespace icinga;
 

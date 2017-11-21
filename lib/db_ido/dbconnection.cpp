@@ -35,7 +35,7 @@ using namespace icinga;
 REGISTER_TYPE(DbConnection);
 
 Timer::Ptr DbConnection::m_ProgramStatusTimer;
-boost::once_flag DbConnection::m_OnceFlag = BOOST_ONCE_INIT;
+std::once_flag DbConnection::m_OnceFlag;
 
 DbConnection::DbConnection(void)
 	: m_IDCacheValid(false), m_QueryStats(15 * 60), m_ActiveChangedHandler(false)
@@ -56,7 +56,7 @@ void DbConnection::OnConfigLoaded(void)
 		SetHAMode(HARunEverywhere);
 	}
 
-	boost::call_once(m_OnceFlag, InitializeDbTimer);
+	std::call_once(m_OnceFlag, InitializeDbTimer);
 }
 
 void DbConnection::Start(bool runtimeCreated)

@@ -29,7 +29,7 @@
 #include "base/process.hpp"
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/thread/once.hpp>
+#include <mutex>
 #include <objbase.h>
 #include <mscoree.h>
 
@@ -40,7 +40,7 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION_NS(Internal, ClrCheck,  &ClrCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
 
-static boost::once_flag l_OnceFlag = BOOST_ONCE_INIT;
+static std::once_flag l_OnceFlag;
 
 static boost::mutex l_ObjectsMutex;
 static std::map<Checkable::Ptr, variant_t> l_Objects;
@@ -69,7 +69,7 @@ static void InitializeClr(void)
 
 static variant_t CreateClrType(const String& assemblyName, const String& typeName)
 {
-	boost::call_once(l_OnceFlag, &InitializeClr);
+	std::call_once(l_OnceFlag, &InitializeClr);
 
 	try {
 		mscorlib::_ObjectHandlePtr pObjectHandle;

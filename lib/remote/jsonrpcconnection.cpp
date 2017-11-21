@@ -27,14 +27,14 @@
 #include "base/logger.hpp"
 #include "base/exception.hpp"
 #include "base/convert.hpp"
-#include <boost/thread/once.hpp>
+#include <mutex>
 
 using namespace icinga;
 
 static Value SetLogPositionHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 REGISTER_APIFUNCTION(SetLogPosition, log, &SetLogPositionHandler);
 
-static boost::once_flag l_JsonRpcConnectionOnceFlag = BOOST_ONCE_INIT;
+static std::once_flag l_JsonRpcConnectionOnceFlag;
 static Timer::Ptr l_JsonRpcConnectionTimeoutTimer;
 static WorkQueue *l_JsonRpcConnectionWorkQueues;
 static size_t l_JsonRpcConnectionWorkQueueCount;
@@ -46,7 +46,7 @@ JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
 	  m_Role(role), m_Timestamp(Utility::GetTime()), m_Seen(Utility::GetTime()),
 	  m_NextHeartbeat(0), m_HeartbeatTimeout(0)
 {
-	boost::call_once(l_JsonRpcConnectionOnceFlag, &JsonRpcConnection::StaticInitialize);
+	std::call_once(l_JsonRpcConnectionOnceFlag, &JsonRpcConnection::StaticInitialize);
 
 	if (authenticated)
 		m_Endpoint = Endpoint::GetByName(identity);

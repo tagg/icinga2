@@ -22,7 +22,7 @@
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/scriptglobal.hpp"
-#include <boost/thread/once.hpp>
+#include <mutex>
 #include <map>
 #ifdef __linux__
 #	include <sys/epoll.h>
@@ -30,7 +30,7 @@
 
 using namespace icinga;
 
-static boost::once_flag l_SocketIOOnceFlag = BOOST_ONCE_INIT;
+static std::once_flag l_SocketIOOnceFlag;
 static SocketEventEngine *l_SocketIOEngine;
 
 int SocketEvents::m_NextID = 0;
@@ -114,7 +114,7 @@ void SocketEvents::InitializeEngine(void)
 SocketEvents::SocketEvents(const Socket::Ptr& socket, Object *lifesupportObject)
 	: m_ID(m_NextID++), m_FD(socket->GetFD()), m_EnginePrivate(NULL)
 {
-	boost::call_once(l_SocketIOOnceFlag, &SocketEvents::InitializeEngine);
+	std::call_once(l_SocketIOOnceFlag, &SocketEvents::InitializeEngine);
 
 	Register(lifesupportObject);
 }

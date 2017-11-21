@@ -20,7 +20,7 @@
 #include "base/socketevents.hpp"
 #include "base/exception.hpp"
 #include "base/logger.hpp"
-#include <boost/thread/once.hpp>
+#include <mutex>
 #include <map>
 
 using namespace icinga;

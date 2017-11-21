@@ -29,7 +29,7 @@
 #include "base/scriptglobal.hpp"
 #include "base/json.hpp"
 #include <boost/algorithm/string/join.hpp>
-#include <boost/thread/once.hpp>
+#include <mutex>
 #include <thread>
 #include <iostream>
 
@@ -62,8 +62,8 @@ static boost::mutex l_ProcessControlMutex;
 static int l_ProcessControlFD = -1;
 static pid_t l_ProcessControlPID;
 #endif /* _WIN32 */
-static boost::once_flag l_ProcessOnceFlag = BOOST_ONCE_INIT;
-static boost::once_flag l_SpawnHelperOnceFlag = BOOST_ONCE_INIT;
+static std::once_flag l_ProcessOnceFlag;
+static std::once_flag l_SpawnHelperOnceFlag;
 
 Process::Process(const Process::Arguments& arguments, const Dictionary::Ptr& extraEnvironment)
 	: m_Arguments(arguments), m_ExtraEnvironment(extraEnvironment), m_Timeout(600), m_AdjustPriority(false)
@@ -792,9 +792,9 @@ static BOOL CreatePipeOverlapped(HANDLE *outReadPipe, HANDLE *outWritePipe,
 void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 {
 #ifndef _WIN32
-	boost::call_once(l_SpawnHelperOnceFlag, &Process::InitializeSpawnHelper);
+	std::call_once(l_SpawnHelperOnceFlag, &Process::InitializeSpawnHelper);
 #endif /* _WIN32 */
-	boost::call_once(l_ProcessOnceFlag, &Process::ThreadInitialize);
+	std::call_once(l_ProcessOnceFlag, &Process::ThreadInitialize);
 
 	m_Result.ExecutionStart = Utility::GetTime();
 

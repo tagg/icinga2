@@ -27,8 +27,8 @@
 #include "base/logger.hpp"
 #include "base/exception.hpp"
 #include "base/convert.hpp"
-#include <boost/thread/once.hpp>
 #include <boost/regex.hpp>
+#include <mutex>
 #include <fstream>
 
 using namespace icinga;
