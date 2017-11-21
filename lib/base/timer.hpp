@@ -65,10 +65,6 @@ private:
 
 	static void TimerThreadProc(void);
 
-	static void Initialize(void);
-	static void Uninitialize(void);
-
-	friend class Application;
 	friend class TimerHolder;
 };
 

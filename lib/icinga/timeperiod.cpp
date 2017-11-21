@@ -33,19 +33,18 @@ REGISTER_TYPE(TimePeriod);
 
 static Timer::Ptr l_UpdateTimer;
 
-INITIALIZE_ONCE(&TimePeriod::StaticInitialize);
-
-void TimePeriod::StaticInitialize(void)
-{
-	l_UpdateTimer = new Timer();
-	l_UpdateTimer->SetInterval(300);
-	l_UpdateTimer->OnTimerExpired.connect(std::bind(&TimePeriod::UpdateTimerHandler));
-	l_UpdateTimer->Start();
-}
-
 void TimePeriod::Start(bool runtimeCreated)
 {
 	ObjectImpl<TimePeriod>::Start(runtimeCreated);
+
+	static std::once_flag once;
+
+	std::call_once(once, []() {
+		l_UpdateTimer = new Timer();
+		l_UpdateTimer->SetInterval(300);
+		l_UpdateTimer->OnTimerExpired.connect(std::bind(&TimePeriod::UpdateTimerHandler));
+		l_UpdateTimer->Start();
+	});
 
 	/* Pre-fill the time period for the next 24 hours. */
 	double now = Utility::GetTime();

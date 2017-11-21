@@ -37,17 +37,7 @@ static Timer::Ptr l_CommentsExpireTimer;
 boost::signals2::signal<void (const Comment::Ptr&)> Comment::OnCommentAdded;
 boost::signals2::signal<void (const Comment::Ptr&)> Comment::OnCommentRemoved;
 
-INITIALIZE_ONCE(&Comment::StaticInitialize);
-
 REGISTER_TYPE(Comment);
-
-void Comment::StaticInitialize(void)
-{
-	l_CommentsExpireTimer = new Timer();
-	l_CommentsExpireTimer->SetInterval(60);
-	l_CommentsExpireTimer->OnTimerExpired.connect(std::bind(&Comment::CommentsExpireTimerHandler));
-	l_CommentsExpireTimer->Start();
-}
 
 String CommentNameComposer::MakeName(const String& shortName, const Object::Ptr& context) const
 {
@@ -105,6 +95,15 @@ void Comment::OnAllConfigLoaded(void)
 void Comment::Start(bool runtimeCreated)
 {
 	ObjectImpl<Comment>::Start(runtimeCreated);
+
+	std::once_flag once;
+
+	std::call_once(once, []() {
+		l_CommentsExpireTimer = new Timer();
+		l_CommentsExpireTimer->SetInterval(60);
+		l_CommentsExpireTimer->OnTimerExpired.connect(std::bind(&Comment::CommentsExpireTimerHandler));
+		l_CommentsExpireTimer->Start();
+	});
 
 	{
 		boost::mutex::scoped_lock lock(l_CommentMutex);
