@@ -32,6 +32,7 @@
 #include "base/initialize.hpp"
 #include <boost/regex.hpp>
 #include <algorithm>
+#include <future>
 #include <set>
 #ifdef _WIN32
 #include <msi.h>
@@ -72,6 +73,8 @@ REGISTER_SCRIPTFUNCTION_NS(System, sleep, &Utility::Sleep, "interval");
 REGISTER_SCRIPTFUNCTION_NS(System, path_exists, &Utility::PathExists, "path");
 REGISTER_SCRIPTFUNCTION_NS(System, glob, &ScriptUtils::Glob, "pathspec:callback:type");
 REGISTER_SCRIPTFUNCTION_NS(System, glob_recursive, &ScriptUtils::GlobRecursive, "pathspec:callback:type");
+REGISTER_SCRIPTFUNCTION_NS(System, call_async, &ScriptUtils::CallAsync, "callback");
+REGISTER_SCRIPTFUNCTION_NS(System, fetch_result, &ScriptUtils::FetchResult, "future");
 
 INITIALIZE_ONCE(&ScriptUtils::StaticInitialize);
 
@@ -499,4 +502,49 @@ Value ScriptUtils::GlobRecursive(const std::vector<Value>& args)
 	Utility::GlobRecursive(path, pattern, std::bind(&GlobCallbackHelper, boost::ref(paths), _1), type);
 
 	return Array::FromVector(paths);
+}
+
+namespace icinga {
+
+class FutureWrapper : public Object
+{
+public:
+	DECLARE_PTR_TYPEDEFS(FutureWrapper);
+
+	FutureWrapper(std::future<Value>&& fut)
+	    : m_Future(std::move(fut))
+	{ }
+
+	Value GetResult(void)
+	{
+		if (!m_Future.valid())
+			BOOST_THROW_EXCEPTION(ScriptError("Future is not valid."));
+
+		return m_Future.get();
+	}
+
+private:
+	std::future<Value> m_Future;
+};
+
+}
+
+FutureWrapper::Ptr ScriptUtils::CallAsync(const std::vector<Value>& args)
+{
+	if (args.size() < 1)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for call_async()"));
+
+	Function::Ptr callback = args[0];
+	std::vector<Value> uargs(args.begin() + 1, args.end());
+
+	auto fut = std::async([callback, uargs]() {
+		return callback->Invoke(uargs);
+	});
+
+	return new FutureWrapper(std::move(fut));
+}
+
+Value ScriptUtils::FetchResult(const FutureWrapper::Ptr& fut)
+{
+	return fut->GetResult();
 }
