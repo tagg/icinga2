@@ -73,6 +73,7 @@ REGISTER_SCRIPTFUNCTION_NS(System, sleep, &Utility::Sleep, "interval");
 REGISTER_SCRIPTFUNCTION_NS(System, path_exists, &Utility::PathExists, "path");
 REGISTER_SCRIPTFUNCTION_NS(System, glob, &ScriptUtils::Glob, "pathspec:callback:type");
 REGISTER_SCRIPTFUNCTION_NS(System, glob_recursive, &ScriptUtils::GlobRecursive, "pathspec:callback:type");
+REGISTER_SCRIPTFUNCTION_NS(System, make_timer, &ScriptUtils::MakeTimer, "duration:callback");
 REGISTER_SCRIPTFUNCTION_NS(System, call_async, &ScriptUtils::CallAsync, "callback");
 REGISTER_SCRIPTFUNCTION_NS(System, fetch_result, &ScriptUtils::FetchResult, "future");
 
@@ -502,6 +503,17 @@ Value ScriptUtils::GlobRecursive(const std::vector<Value>& args)
 	Utility::GlobRecursive(path, pattern, std::bind(&GlobCallbackHelper, boost::ref(paths), _1), type);
 
 	return Array::FromVector(paths);
+}
+
+Timer::Ptr ScriptUtils::MakeTimer(double interval, const Function::Ptr& callback)
+{
+	Timer::Ptr timer = new Timer();
+	timer->SetInterval(interval);
+	timer->OnTimerExpired.connect(std::bind([callback]() {
+		callback->Invoke();
+	}));
+	timer->Start();
+	return timer;
 }
 
 namespace icinga {

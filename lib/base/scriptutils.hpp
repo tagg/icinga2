@@ -26,6 +26,7 @@
 #include "base/dictionary.hpp"
 #include "base/type.hpp"
 #include "base/configobject.hpp"
+#include "base/timer.hpp"
 #include "base/function.hpp"
 
 namespace icinga
@@ -61,6 +62,7 @@ public:
 	static double Ptr(const Object::Ptr& object);
 	static Value Glob(const std::vector<Value>& args);
 	static Value GlobRecursive(const std::vector<Value>& args);
+	static Timer::Ptr MakeTimer(double interval, const Function::Ptr& callback);
 	static intrusive_ptr<FutureWrapper> CallAsync(const std::vector<Value>& args);
 	static Value FetchResult(const intrusive_ptr<FutureWrapper>& fut);
 
