@@ -27,9 +27,9 @@
 #include "base/logger.hpp"
 #include "base/exception.hpp"
 #include "base/convert.hpp"
-#include <boost/regex.hpp>
 #include <mutex>
 #include <fstream>
+#include <regex>
 
 using namespace icinga;
 
@@ -302,9 +302,9 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 		String certFingerprint = params->Get("fingerprint_request");
 
 		/* Validate the fingerprint format. */
-		boost::regex expr("^[0-9a-f]+$");
+		static std::regex expr("^[0-9a-f]+$", std::regex::extended);
 
-		if (!boost::regex_match(certFingerprint.GetData(), expr)) {
+		if (!std::regex_match(certFingerprint.GetData(), expr)) {
 			Log(LogWarning, "JsonRpcConnection")
 			    << "Endpoint '" << origin->FromClient->GetIdentity() << "' sent an invalid certificate fingerprint: '"
 			    << certFingerprint << "' for CN '" << cn << "'.";

@@ -34,6 +34,7 @@
 #include <algorithm>
 #include <future>
 #include <set>
+#include <regex>
 #ifdef _WIN32
 #include <msi.h>
 #endif /* _WIN32 */
@@ -139,9 +140,8 @@ bool ScriptUtils::Regex(const std::vector<Value>& args)
 	for (const String& text : texts) {
 		bool res = false;
 		try {
-			boost::regex expr(pattern.GetData());
-			boost::smatch what;
-			res = boost::regex_search(text.GetData(), what, expr);
+			std::regex expr(pattern.Begin(), pattern.End(), std::regex::extended);
+			res = std::regex_search(text.GetData(), expr);
 		} catch (boost::exception&) {
 			res = false; /* exception means something went terribly wrong */
 		}

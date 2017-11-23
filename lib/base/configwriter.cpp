@@ -19,12 +19,12 @@
 
 #include "base/configwriter.hpp"
 #include "base/exception.hpp"
-#include <boost/regex.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <set>
 #include <iterator>
+#include <regex>
 
 using namespace icinga;
 
@@ -165,9 +165,8 @@ void ConfigWriter::EmitIdentifier(std::ostream& fp, const String& identifier, bo
 		return;
 	}
 
-	boost::regex expr("^[a-zA-Z_][a-zA-Z0-9\\_]*$");
-	boost::smatch what;
-	if (boost::regex_search(identifier.GetData(), what, expr))
+	static std::regex expr("^[a-zA-Z_][a-zA-Z0-9\\_]*$", std::regex::extended);
+	if (std::regex_match(identifier.GetData(), expr))
 		fp << identifier;
 	else if (inAssignment)
 		EmitString(fp, identifier);

@@ -23,9 +23,9 @@
 #include "base/scriptglobal.hpp"
 #include "base/utility.hpp"
 #include <boost/algorithm/string.hpp>
-#include <boost/regex.hpp>
 #include <algorithm>
 #include <fstream>
+#include <regex>
 
 using namespace icinga;
 
@@ -315,9 +315,8 @@ bool ConfigPackageUtility::ValidateName(const String& name)
 	if (ContainsDotDot(name))
 		return false;
 
-	boost::regex expr("^[^a-zA-Z0-9_\\-]*$", boost::regex::icase);
-	boost::smatch what;
-	return (!boost::regex_search(name.GetData(), what, expr));
+	static std::regex expr("^[^a-zA-Z0-9_\\-]*$", std::regex::icase | std::regex::extended);
+	return !std::regex_match(name.GetData(), expr);
 }
 
 boost::mutex& ConfigPackageUtility::GetStaticMutex(void)

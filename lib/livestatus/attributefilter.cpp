@@ -22,8 +22,8 @@
 #include "base/array.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
-#include <boost/regex.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <regex>
 
 using namespace icinga;
 
@@ -64,10 +64,9 @@ bool AttributeFilter::Apply(const Table::Ptr& table, const Value& row)
 		} else if (m_Operator == "~") {
 			bool ret;
 			try {
-				boost::regex expr(m_Operand.GetData());
+				std::regex expr(m_Operand.Begin(), m_Operand.End(), std::regex::extended);
 				String operand = value;
-				boost::smatch what;
-				ret = boost::regex_search(operand.GetData(), what, expr);
+				ret = std::regex_search(operand.GetData(), expr);
 			} catch (boost::exception&) {
 				Log(LogWarning, "AttributeFilter")
 				    << "Regex '" << m_Operand << " " << m_Operator << " " << value << "' error.";
@@ -94,10 +93,9 @@ bool AttributeFilter::Apply(const Table::Ptr& table, const Value& row)
 		} else if (m_Operator == "~~") {
 			bool ret;
 			try {
-				boost::regex expr(m_Operand.GetData(), boost::regex::icase);
+				std::regex expr(m_Operand.Begin(), m_Operand.End(), std::regex::icase | std::regex::extended);
 				String operand = value;
-				boost::smatch what;
-				ret = boost::regex_search(operand.GetData(), what, expr);
+				ret = std::regex_search(operand.GetData(), expr);
 			} catch (boost::exception&) {
 				Log(LogWarning, "AttributeFilter")
 				    << "Regex '" << m_Operand << " " << m_Operator << " " << value << "' error.";

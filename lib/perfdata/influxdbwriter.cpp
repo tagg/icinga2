@@ -44,8 +44,8 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
-#include <boost/regex.hpp>
 #include <boost/scoped_array.hpp>
+#include <regex>
 
 using namespace icinga;
 
@@ -320,26 +320,26 @@ String InfluxdbWriter::EscapeKey(const String& str)
 
 String InfluxdbWriter::EscapeField(const String& str)
 {
-	//TODO: Evaluate whether boost::regex is really needed here.
+	//TODO: Evaluate whether std::regex is really needed here.
 
 	// Handle integers
-	boost::regex integer("-?\\d+i");
-	if (boost::regex_match(str.GetData(), integer)) {
+	std::regex integer("-?\\d+i", std::regex::extended);
+	if (std::regex_match(str.GetData(), integer)) {
 		return str;
 	}
 
 	// Handle numerics
-	boost::regex numeric("-?\\d+(\\.\\d+)?((e|E)[+-]?\\d+)?");
-	if (boost::regex_match(str.GetData(), numeric)) {
+	std::regex numeric("-?\\d+(\\.\\d+)?((e|E)[+-]?\\d+)?", std::regex::extended);
+	if (std::regex_match(str.GetData(), numeric)) {
 		return str;
 	}
 
 	// Handle booleans
-	boost::regex boolean_true("t|true", boost::regex::icase);
-	if (boost::regex_match(str.GetData(), boolean_true))
+	std::regex boolean_true("t|true", std::regex::icase | std::regex::extended);
+	if (std::regex_match(str.GetData(), boolean_true))
 		return "true";
-	boost::regex boolean_false("f|false", boost::regex::icase);
-	if (boost::regex_match(str.GetData(), boolean_false))
+	std::regex boolean_false("f|false", std::regex::icase | std::regex::extended);
+	if (std::regex_match(str.GetData(), boolean_false))
 		return "false";
 
 	// Handle NaNs
