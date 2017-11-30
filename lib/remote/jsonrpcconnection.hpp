@@ -88,7 +88,7 @@ private:
 	double m_Seen;
 	double m_NextHeartbeat;
 	double m_HeartbeatTimeout;
-	boost::mutex m_DataHandlerMutex;
+	std::mutex m_DataHandlerMutex;
 
 	StreamReadContext m_Context;
 

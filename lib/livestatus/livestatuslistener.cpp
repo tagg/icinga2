@@ -39,7 +39,7 @@ REGISTER_TYPE(LivestatusListener);
 
 static int l_ClientsConnected = 0;
 static int l_Connections = 0;
-static boost::mutex l_ComponentMutex;
+static std::mutex l_ComponentMutex;
 
 REGISTER_STATSFUNCTION(LivestatusListener, &LivestatusListener::StatsFunc);
 
@@ -137,14 +137,14 @@ void LivestatusListener::Stop(bool runtimeRemoved)
 
 int LivestatusListener::GetClientsConnected(void)
 {
-	boost::mutex::scoped_lock lock(l_ComponentMutex);
+	std::lock_guard<std::mutex> lock(l_ComponentMutex);
 
 	return l_ClientsConnected;
 }
 
 int LivestatusListener::GetConnections(void)
 {
-	boost::mutex::scoped_lock lock(l_ComponentMutex);
+	std::lock_guard<std::mutex> lock(l_ComponentMutex);
 
 	return l_Connections;
 }
@@ -176,7 +176,7 @@ void LivestatusListener::ServerThreadProc(void)
 void LivestatusListener::ClientHandler(const Socket::Ptr& client)
 {
 	{
-		boost::mutex::scoped_lock lock(l_ComponentMutex);
+		std::lock_guard<std::mutex> lock(l_ComponentMutex);
 		l_ClientsConnected++;
 		l_Connections++;
 	}
@@ -214,7 +214,7 @@ void LivestatusListener::ClientHandler(const Socket::Ptr& client)
 	}
 
 	{
-		boost::mutex::scoped_lock lock(l_ComponentMutex);
+		std::lock_guard<std::mutex> lock(l_ComponentMutex);
 		l_ClientsConnected--;
 	}
 }

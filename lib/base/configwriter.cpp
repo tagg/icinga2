@@ -150,10 +150,10 @@ void ConfigWriter::EmitIndent(std::ostream& fp, int indentLevel)
 void ConfigWriter::EmitIdentifier(std::ostream& fp, const String& identifier, bool inAssignment)
 {
 	static std::set<String> keywords;
-	static boost::mutex mutex;
+	static std::mutex mutex;
 
 	{
-		boost::mutex::scoped_lock lock(mutex);
+		std::lock_guard<std::mutex> lock(mutex);
 		if (keywords.empty()) {
 			const std::vector<String>& vkeywords = GetKeywords();
 			std::copy(vkeywords.begin(), vkeywords.end(), std::inserter(keywords, keywords.begin()));
@@ -222,8 +222,8 @@ String ConfigWriter::EscapeIcingaString(const String& str)
 const std::vector<String>& ConfigWriter::GetKeywords(void)
 {
 	static std::vector<String> keywords;
-	static boost::mutex mutex;
-	boost::mutex::scoped_lock lock(mutex);
+	static std::mutex mutex;
+	std::lock_guard<std::mutex> lock(mutex);
 
 	if (keywords.empty()) {
 		keywords.push_back("object");

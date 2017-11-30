@@ -52,7 +52,7 @@ protected:
 	virtual void Flush(void) override;
 
 private:
-	static boost::mutex m_Mutex;
+	static std::mutex m_Mutex;
 	std::ostream *m_Stream;
 	bool m_OwnsStream;
 

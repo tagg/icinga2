@@ -31,7 +31,7 @@
 using namespace icinga;
 
 static int l_NextDowntimeID = 1;
-static boost::mutex l_DowntimeMutex;
+static std::mutex l_DowntimeMutex;
 static std::map<int, String> l_LegacyDowntimesCache;
 static Timer::Ptr l_DowntimesExpireTimer;
 static Timer::Ptr l_DowntimesStartTimer;
@@ -115,7 +115,7 @@ void Downtime::Start(bool runtimeCreated)
 	});
 
 	{
-		boost::mutex::scoped_lock lock(l_DowntimeMutex);
+		std::lock_guard<std::mutex> lock(l_DowntimeMutex);
 
 		SetLegacyId(l_NextDowntimeID);
 		l_LegacyDowntimesCache[l_NextDowntimeID] = GetName();
@@ -210,7 +210,7 @@ bool Downtime::HasValidConfigOwner(void) const
 
 int Downtime::GetNextDowntimeID(void)
 {
-	boost::mutex::scoped_lock lock(l_DowntimeMutex);
+	std::lock_guard<std::mutex> lock(l_DowntimeMutex);
 
 	return l_NextDowntimeID;
 }
@@ -367,7 +367,7 @@ void Downtime::TriggerDowntime(void)
 
 String Downtime::GetDowntimeIDFromLegacyID(int id)
 {
-	boost::mutex::scoped_lock lock(l_DowntimeMutex);
+	std::lock_guard<std::mutex> lock(l_DowntimeMutex);
 
 	auto it = l_LegacyDowntimesCache.find(id);
 

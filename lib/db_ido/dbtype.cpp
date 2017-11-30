@@ -51,7 +51,7 @@ String DbType::GetIDColumn(void) const
 
 void DbType::RegisterType(const DbType::Ptr& type)
 {
-	boost::mutex::scoped_lock lock(GetStaticMutex());
+	std::lock_guard<std::mutex> lock(GetStaticMutex());
 	GetTypes()[type->GetName()] = type;
 }
 
@@ -64,7 +64,7 @@ DbType::Ptr DbType::GetByName(const String& name)
 	else
 		typeName = name;
 
-	boost::mutex::scoped_lock lock(GetStaticMutex());
+	std::lock_guard<std::mutex> lock(GetStaticMutex());
 	auto it = GetTypes().find(typeName);
 
 	if (it == GetTypes().end())
@@ -75,7 +75,7 @@ DbType::Ptr DbType::GetByName(const String& name)
 
 DbType::Ptr DbType::GetByID(long tid)
 {
-	boost::mutex::scoped_lock lock(GetStaticMutex());
+	std::lock_guard<std::mutex> lock(GetStaticMutex());
 
 	for (const TypeMap::value_type& kv : GetTypes()) {
 		if (kv.second->GetTypeID() == tid)
@@ -122,9 +122,9 @@ DbObject::Ptr DbType::GetOrCreateObjectByName(const String& name1, const String&
 	return dbobj;
 }
 
-boost::mutex& DbType::GetStaticMutex(void)
+std::mutex& DbType::GetStaticMutex(void)
 {
-	static boost::mutex mutex;
+	static std::mutex mutex;
 	return mutex;
 }
 
@@ -142,7 +142,7 @@ std::set<DbType::Ptr> DbType::GetAllTypes(void)
 	std::set<DbType::Ptr> result;
 
 	{
-		boost::mutex::scoped_lock lock(GetStaticMutex());
+		std::lock_guard<std::mutex> lock(GetStaticMutex());
 		for (const auto& kv : GetTypes()) {
 			result.insert(kv.second);
 		}

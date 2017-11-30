@@ -35,14 +35,14 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/console", ConsoleHandler);
 
-static boost::mutex l_QueryMutex;
+static std::mutex l_QueryMutex;
 static std::map<String, ApiScriptFrame> l_ApiScriptFrames;
 static Timer::Ptr l_FrameCleanupTimer;
-static boost::mutex l_ApiScriptMutex;
+static std::mutex l_ApiScriptMutex;
 
 static void ScriptFrameCleanupHandler(void)
 {
-	boost::mutex::scoped_lock lock(l_ApiScriptMutex);
+	std::lock_guard<std::mutex> lock(l_ApiScriptMutex);
 
 	std::vector<String> cleanup_keys;
 

@@ -62,7 +62,7 @@ private:
 	Stream::Ptr m_Stream;
 	std::deque<std::pair<std::shared_ptr<HttpRequest>, HttpCompletionCallback> > m_Requests;
 	std::shared_ptr<HttpResponse> m_CurrentResponse;
-	boost::mutex m_DataHandlerMutex;
+	std::mutex m_DataHandlerMutex;
 
 	StreamReadContext m_Context;
 

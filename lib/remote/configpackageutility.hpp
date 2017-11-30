@@ -58,7 +58,7 @@ public:
 	static bool ContainsDotDot(const String& path);
 	static bool ValidateName(const String& name);
 
-	static boost::mutex& GetStaticMutex(void);
+	static std::mutex& GetStaticMutex(void);
 
 private:
 	static void CollectDirNames(const String& path, std::vector<String>& dirs);

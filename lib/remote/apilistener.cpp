@@ -220,7 +220,7 @@ void ApiListener::Start(bool runtimeCreated)
 	ObjectImpl<ApiListener>::Start(runtimeCreated);
 
 	{
-		boost::mutex::scoped_lock(m_LogLock);
+		std::lock_guard<std::mutex> lock(m_LogLock);
 		RotateLogFile();
 		OpenLogFile();
 	}
@@ -265,7 +265,7 @@ void ApiListener::Stop(bool runtimeDeleted)
 	Log(LogInformation, "ApiListener")
 	    << "'" << GetName() << "' stopped.";
 
-	boost::mutex::scoped_lock lock(m_LogLock);
+	std::lock_guard<std::mutex> lock(m_LogLock);
 	CloseLogFile();
 }
 
@@ -818,7 +818,7 @@ void ApiListener::PersistMessage(const Dictionary::Ptr& message, const ConfigObj
 		pmessage->Set("secobj", secname);
 	}
 
-	boost::mutex::scoped_lock lock(m_LogLock);
+	std::lock_guard<std::mutex> lock(m_LogLock);
 	if (m_LogFile) {
 		NetString::WriteStringToStream(m_LogFile, JsonEncode(pmessage));
 		m_LogMessageCount++;
@@ -1075,7 +1075,7 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 	}
 
 	for (;;) {
-		boost::mutex::scoped_lock lock(m_LogLock);
+		std::unique_lock<std::mutex> lock(m_LogLock);
 
 		CloseLogFile();
 		RotateLogFile();
@@ -1354,37 +1354,37 @@ double ApiListener::CalculateZoneLag(const Endpoint::Ptr& endpoint)
 
 void ApiListener::AddAnonymousClient(const JsonRpcConnection::Ptr& aclient)
 {
-	boost::mutex::scoped_lock(m_AnonymousClientsLock);
+	std::lock_guard<std::mutex> lock(m_AnonymousClientsLock);
 	m_AnonymousClients.insert(aclient);
 }
 
 void ApiListener::RemoveAnonymousClient(const JsonRpcConnection::Ptr& aclient)
 {
-	boost::mutex::scoped_lock(m_AnonymousClientsLock);
+	std::lock_guard<std::mutex> lock(m_AnonymousClientsLock);
 	m_AnonymousClients.erase(aclient);
 }
 
 std::set<JsonRpcConnection::Ptr> ApiListener::GetAnonymousClients(void) const
 {
-	boost::mutex::scoped_lock(m_AnonymousClientsLock);
+	std::lock_guard<std::mutex> lock(m_AnonymousClientsLock);
 	return m_AnonymousClients;
 }
 
 void ApiListener::AddHttpClient(const HttpServerConnection::Ptr& aclient)
 {
-	boost::mutex::scoped_lock(m_HttpClientsLock);
+	std::lock_guard<std::mutex> lock(m_HttpClientsLock);
 	m_HttpClients.insert(aclient);
 }
 
 void ApiListener::RemoveHttpClient(const HttpServerConnection::Ptr& aclient)
 {
-	boost::mutex::scoped_lock(m_HttpClientsLock);
+	std::lock_guard<std::mutex> lock(m_HttpClientsLock);
 	m_HttpClients.erase(aclient);
 }
 
 std::set<HttpServerConnection::Ptr> ApiListener::GetHttpClients(void) const
 {
-	boost::mutex::scoped_lock(m_HttpClientsLock);
+	std::lock_guard<std::mutex> lock(m_HttpClientsLock);
 	return m_HttpClients;
 }
 

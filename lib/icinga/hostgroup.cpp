@@ -73,7 +73,7 @@ void HostGroup::EvaluateObjectRules(const Host::Ptr& host)
 
 std::set<Host::Ptr> HostGroup::GetMembers(void) const
 {
-	boost::mutex::scoped_lock lock(m_HostGroupMutex);
+	std::lock_guard<std::mutex> lock(m_HostGroupMutex);
 	return m_Members;
 }
 
@@ -81,13 +81,13 @@ void HostGroup::AddMember(const Host::Ptr& host)
 {
 	host->AddGroup(GetName());
 
-	boost::mutex::scoped_lock lock(m_HostGroupMutex);
+	std::lock_guard<std::mutex> lock(m_HostGroupMutex);
 	m_Members.insert(host);
 }
 
 void HostGroup::RemoveMember(const Host::Ptr& host)
 {
-	boost::mutex::scoped_lock lock(m_HostGroupMutex);
+	std::lock_guard<std::mutex> lock(m_HostGroupMutex);
 	m_Members.erase(host);
 }
 

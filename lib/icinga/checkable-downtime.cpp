@@ -64,18 +64,18 @@ int Checkable::GetDowntimeDepth(void) const
 
 std::set<Downtime::Ptr> Checkable::GetDowntimes(void) const
 {
-	boost::mutex::scoped_lock lock(m_DowntimeMutex);
+	std::lock_guard<std::mutex> lock(m_DowntimeMutex);
 	return m_Downtimes;
 }
 
 void Checkable::RegisterDowntime(const Downtime::Ptr& downtime)
 {
-	boost::mutex::scoped_lock lock(m_DowntimeMutex);
+	std::lock_guard<std::mutex> lock(m_DowntimeMutex);
 	m_Downtimes.insert(downtime);
 }
 
 void Checkable::UnregisterDowntime(const Downtime::Ptr& downtime)
 {
-	boost::mutex::scoped_lock lock(m_DowntimeMutex);
+	std::lock_guard<std::mutex> lock(m_DowntimeMutex);
 	m_Downtimes.erase(downtime);
 }

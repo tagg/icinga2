@@ -103,7 +103,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
     const String& config, const Array::Ptr& errors)
 {
 	{
-		boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticMutex());
+		std::lock_guard<std::mutex> lock(ConfigPackageUtility::GetStaticMutex());
 		if (!ConfigPackageUtility::PackageExists("_api")) {
 			ConfigPackageUtility::CreatePackage("_api");
 

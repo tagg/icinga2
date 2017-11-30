@@ -120,8 +120,8 @@ extern "C" void dbg_eval_with_object(Object *object, const char *text)
 
 void ConsoleCommand::BreakpointHandler(ScriptFrame& frame, ScriptError *ex, const DebugInfo& di)
 {
-	static boost::mutex mutex;
-	boost::mutex::scoped_lock lock(mutex);
+	static std::mutex mutex;
+	std::lock_guard<std::mutex> lock(mutex);
 
 	if (!Application::GetScriptDebuggerEnabled())
 		return;
@@ -189,8 +189,8 @@ char *ConsoleCommand::ConsoleCompleteHelper(const char *word, int state)
 		if (!l_ApiClient)
 			matches = ConsoleHandler::GetAutocompletionSuggestions(word, *l_ScriptFrame); 
 		else {
-			boost::mutex mutex;
-			boost::condition_variable cv;
+			std::mutex mutex;
+			std::condition_variable cv;
 			bool ready = false;
 			Array::Ptr suggestions;
 
@@ -201,7 +201,7 @@ char *ConsoleCommand::ConsoleCompleteHelper(const char *word, int state)
 			    std::ref(suggestions)));
 
 			{
-				boost::mutex::scoped_lock lock(mutex);
+				std::unique_lock<std::mutex> lock(mutex);
 				while (!ready)
 					cv.wait(lock);
 			}
@@ -419,8 +419,8 @@ incomplete:
 				} else
 					result = true;
 			} else {
-				boost::mutex mutex;
-				boost::condition_variable cv;
+				std::mutex mutex;
+				std::condition_variable cv;
 				bool ready = false;
 				boost::exception_ptr eptr;
 
@@ -431,7 +431,7 @@ incomplete:
 				    std::ref(result), std::ref(eptr)));
 
 				{
-					boost::mutex::scoped_lock lock(mutex);
+					std::unique_lock<std::mutex> lock(mutex);
 					while (!ready)
 						cv.wait(lock);
 				}
@@ -509,7 +509,7 @@ incomplete:
 	return EXIT_SUCCESS;
 }
 
-void ConsoleCommand::ExecuteScriptCompletionHandler(boost::mutex& mutex, boost::condition_variable& cv,
+void ConsoleCommand::ExecuteScriptCompletionHandler(std::mutex& mutex, std::condition_variable& cv,
     bool& ready, boost::exception_ptr eptr, const Value& result, Value& resultOut, boost::exception_ptr& eptrOut)
 {
 	if (eptr) {
@@ -527,13 +527,13 @@ void ConsoleCommand::ExecuteScriptCompletionHandler(boost::mutex& mutex, boost::
 	resultOut = result;
 
 	{
-		boost::mutex::scoped_lock lock(mutex);
+		std::lock_guard<std::mutex> lock(mutex);
 		ready = true;
 		cv.notify_all();
 	}
 }
 
-void ConsoleCommand::AutocompleteScriptCompletionHandler(boost::mutex& mutex, boost::condition_variable& cv,
+void ConsoleCommand::AutocompleteScriptCompletionHandler(std::mutex& mutex, std::condition_variable& cv,
     bool& ready, boost::exception_ptr eptr, const Array::Ptr& result, Array::Ptr& resultOut)
 {
 	if (eptr) {
@@ -549,7 +549,7 @@ void ConsoleCommand::AutocompleteScriptCompletionHandler(boost::mutex& mutex, bo
 	resultOut = result;
 
 	{
-		boost::mutex::scoped_lock lock(mutex);
+		std::lock_guard<std::mutex> lock(mutex);
 		ready = true;
 		cv.notify_all();
 	}

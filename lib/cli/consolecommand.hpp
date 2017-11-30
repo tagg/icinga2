@@ -51,13 +51,13 @@ public:
 	    bool syntaxOnly = false);
 
 private:
-	mutable boost::mutex m_Mutex;
-	mutable boost::condition_variable m_CV;
+	mutable std::mutex m_Mutex;
+	mutable std::condition_variable m_CV;
 
-	static void ExecuteScriptCompletionHandler(boost::mutex& mutex, boost::condition_variable& cv,
+	static void ExecuteScriptCompletionHandler(std::mutex& mutex, std::condition_variable& cv,
 	    bool& ready, boost::exception_ptr eptr, const Value& result, Value& resultOut,
 	    boost::exception_ptr& eptrOut);
-	static void AutocompleteScriptCompletionHandler(boost::mutex& mutex, boost::condition_variable& cv,
+	static void AutocompleteScriptCompletionHandler(std::mutex& mutex, std::condition_variable& cv,
 	    bool& ready, boost::exception_ptr eptr, const Array::Ptr& result, Array::Ptr& resultOut);
 
 #ifdef HAVE_EDITLINE

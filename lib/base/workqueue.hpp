@@ -24,8 +24,6 @@
 #include "base/timer.hpp"
 #include "base/ringbuffer.hpp"
 #include <boost/thread/thread.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition_variable.hpp>
 #include <boost/exception_ptr.hpp>
 #include <queue>
 #include <deque>
@@ -111,10 +109,10 @@ private:
 	int m_ThreadCount;
 	bool m_Spawned;
 
-	mutable boost::mutex m_Mutex;
-	boost::condition_variable m_CVEmpty;
-	boost::condition_variable m_CVFull;
-	boost::condition_variable m_CVStarved;
+	mutable std::mutex m_Mutex;
+	std::condition_variable m_CVEmpty;
+	std::condition_variable m_CVFull;
+	std::condition_variable m_CVStarved;
 	boost::thread_group m_Threads;
 	size_t m_MaxItems;
 	bool m_Stopped;
@@ -126,7 +124,7 @@ private:
 	Timer::Ptr m_StatusTimer;
 	double m_StatusTimerTimeout;
 
-	mutable boost::mutex m_StatsMutex;
+	mutable std::mutex m_StatsMutex;
 	RingBuffer m_TaskStats;
 	int m_PendingTasks;
 	double m_PendingTasksTimestamp;

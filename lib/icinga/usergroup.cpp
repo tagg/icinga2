@@ -73,7 +73,7 @@ void UserGroup::EvaluateObjectRules(const User::Ptr& user)
 
 std::set<User::Ptr> UserGroup::GetMembers(void) const
 {
-	boost::mutex::scoped_lock lock(m_UserGroupMutex);
+	std::lock_guard<std::mutex> lock(m_UserGroupMutex);
 	return m_Members;
 }
 
@@ -81,13 +81,13 @@ void UserGroup::AddMember(const User::Ptr& user)
 {
 	user->AddGroup(GetName());
 
-	boost::mutex::scoped_lock lock(m_UserGroupMutex);
+	std::lock_guard<std::mutex> lock(m_UserGroupMutex);
 	m_Members.insert(user);
 }
 
 void UserGroup::RemoveMember(const User::Ptr& user)
 {
-	boost::mutex::scoped_lock lock(m_UserGroupMutex);
+	std::lock_guard<std::mutex> lock(m_UserGroupMutex);
 	m_Members.erase(user);
 }
 

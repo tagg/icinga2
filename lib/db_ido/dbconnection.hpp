@@ -26,7 +26,6 @@
 #include "db_ido/dbquery.hpp"
 #include "base/timer.hpp"
 #include "base/ringbuffer.hpp"
-#include <boost/thread/mutex.hpp>
 #include <mutex>
 
 #define IDO_CURRENT_SCHEMA_VERSION "1.14.3"
@@ -128,7 +127,7 @@ private:
 
 	static void InsertRuntimeVariable(const String& key, const Value& value);
 
-	mutable boost::mutex m_StatsMutex;
+	mutable std::mutex m_StatsMutex;
 	RingBuffer m_QueryStats;
 	bool m_ActiveChangedHandler;
 };

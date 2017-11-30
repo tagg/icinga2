@@ -25,8 +25,6 @@
 #include "base/configobject.hpp"
 #include "base/timer.hpp"
 #include "base/utility.hpp"
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition_variable.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/key_extractors.hpp>
@@ -88,8 +86,8 @@ public:
 	unsigned long GetPendingCheckables(void);
 
 private:
-	boost::mutex m_Mutex;
-	boost::condition_variable m_CV;
+	std::mutex m_Mutex;
+	std::condition_variable m_CV;
 	bool m_Stopped;
 	std::thread m_Thread;
 

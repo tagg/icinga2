@@ -30,7 +30,7 @@
 using namespace icinga;
 
 static int l_NextCommentID = 1;
-static boost::mutex l_CommentMutex;
+static std::mutex l_CommentMutex;
 static std::map<int, String> l_LegacyCommentsCache;
 static Timer::Ptr l_CommentsExpireTimer;
 
@@ -106,7 +106,7 @@ void Comment::Start(bool runtimeCreated)
 	});
 
 	{
-		boost::mutex::scoped_lock lock(l_CommentMutex);
+		std::lock_guard<std::mutex> lock(l_CommentMutex);
 
 		SetLegacyId(l_NextCommentID);
 		l_LegacyCommentsCache[l_NextCommentID] = GetName();
@@ -143,7 +143,7 @@ bool Comment::IsExpired(void) const
 
 int Comment::GetNextCommentID(void)
 {
-	boost::mutex::scoped_lock lock(l_CommentMutex);
+	std::lock_guard<std::mutex> lock(l_CommentMutex);
 
 	return l_NextCommentID;
 }
@@ -228,7 +228,7 @@ void Comment::RemoveComment(const String& id, const MessageOrigin::Ptr& origin)
 
 String Comment::GetCommentIDFromLegacyID(int id)
 {
-	boost::mutex::scoped_lock lock(l_CommentMutex);
+	std::lock_guard<std::mutex> lock(l_CommentMutex);
 
 	auto it = l_LegacyCommentsCache.find(id);
 

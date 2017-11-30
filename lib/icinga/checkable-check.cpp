@@ -40,7 +40,7 @@ boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, st
 boost::signals2::signal<void (const Checkable::Ptr&, NotificationType, const CheckResult::Ptr&, const String&, const String&, const MessageOrigin::Ptr&)> Checkable::OnNotificationsRequested;
 boost::signals2::signal<void (const Checkable::Ptr&)> Checkable::OnNextCheckUpdated;
 
-boost::mutex Checkable::m_StatsMutex;
+std::mutex Checkable::m_StatsMutex;
 int Checkable::m_PendingChecks = 0;
 
 CheckCommand::Ptr Checkable::GetCheckCommand(void) const
@@ -526,18 +526,18 @@ void Checkable::UpdateStatistics(const CheckResult::Ptr& cr, CheckableType type)
 
 void Checkable::IncreasePendingChecks(void)
 {
-	boost::mutex::scoped_lock lock(m_StatsMutex);
+	std::lock_guard<std::mutex> lock(m_StatsMutex);
 	m_PendingChecks++;
 }
 
 void Checkable::DecreasePendingChecks(void)
 {
-	boost::mutex::scoped_lock lock(m_StatsMutex);
+	std::lock_guard<std::mutex> lock(m_StatsMutex);
 	m_PendingChecks--;
 }
 
 int Checkable::GetPendingChecks(void)
 {
-	boost::mutex::scoped_lock lock(m_StatsMutex);
+	std::lock_guard<std::mutex> lock(m_StatsMutex);
 	return m_PendingChecks;
 }

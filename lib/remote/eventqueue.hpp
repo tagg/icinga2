@@ -23,8 +23,6 @@
 #include "remote/httphandler.hpp"
 #include "base/object.hpp"
 #include "config/expression.hpp"
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition_variable.hpp>
 #include <set>
 #include <map>
 #include <deque>
@@ -60,8 +58,8 @@ public:
 private:
 	String m_Name;
 
-	mutable boost::mutex m_Mutex;
-	boost::condition_variable m_CV;
+	mutable std::mutex m_Mutex;
+	std::condition_variable m_CV;
 
 	std::set<String> m_Types;
 	Expression *m_Filter;

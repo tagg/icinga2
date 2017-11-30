@@ -61,7 +61,7 @@ void ConfigCompilerContext::WriteObject(const Dictionary::Ptr& object)
 	String json = JsonEncode(object);
 
 	{
-		boost::mutex::scoped_lock lock(m_Mutex);
+		std::lock_guard<std::mutex> lock(m_Mutex);
 		NetString::WriteStringToStream(*m_ObjectsFP, json);
 	}
 }

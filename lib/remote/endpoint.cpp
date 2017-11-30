@@ -57,7 +57,7 @@ void Endpoint::AddClient(const JsonRpcConnection::Ptr& client)
 	bool was_master = ApiListener::GetInstance()->IsMaster();
 
 	{
-		boost::mutex::scoped_lock lock(m_ClientsLock);
+		std::lock_guard<std::mutex> lock(m_ClientsLock);
 		m_Clients.insert(client);
 	}
 
@@ -74,7 +74,7 @@ void Endpoint::RemoveClient(const JsonRpcConnection::Ptr& client)
 	bool was_master = ApiListener::GetInstance()->IsMaster();
 
 	{
-		boost::mutex::scoped_lock lock(m_ClientsLock);
+		std::lock_guard<std::mutex> lock(m_ClientsLock);
 		m_Clients.erase(client);
 
 		Log(LogWarning, "ApiListener")
@@ -93,7 +93,7 @@ void Endpoint::RemoveClient(const JsonRpcConnection::Ptr& client)
 
 std::set<JsonRpcConnection::Ptr> Endpoint::GetClients(void) const
 {
-	boost::mutex::scoped_lock lock(m_ClientsLock);
+	std::lock_guard<std::mutex> lock(m_ClientsLock);
 	return m_Clients;
 }
 
@@ -104,7 +104,7 @@ Zone::Ptr Endpoint::GetZone(void) const
 
 bool Endpoint::GetConnected(void) const
 {
-	boost::mutex::scoped_lock lock(m_ClientsLock);
+	std::lock_guard<std::mutex> lock(m_ClientsLock);
 	return !m_Clients.empty();
 }
 

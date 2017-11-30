@@ -51,7 +51,7 @@ private:
 	WorkQueue m_WorkQueue;
 	Timer::Ptr m_FlushTimer;
 	std::vector<String> m_DataBuffer;
-	boost::mutex m_DataBufferMutex;
+	std::mutex m_DataBufferMutex;
 
 	void AddCheckResult(const Dictionary::Ptr& fields, const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 

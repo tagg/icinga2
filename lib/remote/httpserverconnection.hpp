@@ -54,7 +54,7 @@ private:
 	TlsStream::Ptr m_Stream;
 	double m_Seen;
 	HttpRequest m_CurrentRequest;
-	boost::mutex m_DataHandlerMutex;
+	std::mutex m_DataHandlerMutex;
 	WorkQueue m_RequestQueue;
 	int m_PendingRequests;
 

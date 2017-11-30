@@ -41,7 +41,7 @@
 
 using namespace icinga;
 
-boost::mutex ConfigItem::m_Mutex;
+std::mutex ConfigItem::m_Mutex;
 ConfigItem::TypeMap ConfigItem::m_Items;
 ConfigItem::TypeMap ConfigItem::m_DefaultTemplates;
 ConfigItem::ItemList ConfigItem::m_UnnamedItems;
@@ -207,7 +207,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
 
 			{
-				boost::mutex::scoped_lock lock(m_Mutex);
+				std::lock_guard<std::mutex> lock(m_Mutex);
 				m_IgnoredItems.push_back(m_DebugInfo.Path);
 			}
 
@@ -259,7 +259,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
 
 			{
-				boost::mutex::scoped_lock lock(m_Mutex);
+				std::lock_guard<std::mutex> lock(m_Mutex);
 				m_IgnoredItems.push_back(m_DebugInfo.Path);
 			}
 
@@ -278,7 +278,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
 
 			{
-				boost::mutex::scoped_lock lock(m_Mutex);
+				std::lock_guard<std::mutex> lock(m_Mutex);
 				m_IgnoredItems.push_back(m_DebugInfo.Path);
 			}
 
@@ -322,7 +322,7 @@ void ConfigItem::Register(void)
 {
 	m_ActivationContext = ActivationContext::GetCurrentContext();
 
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::lock_guard<std::mutex> lock(m_Mutex);
 
 	/* If this is a non-abstract object with a composite name
 	 * we register it in m_UnnamedItems instead of m_Items. */
@@ -358,7 +358,7 @@ void ConfigItem::Unregister(void)
 		m_Object.reset();
 	}
 
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::lock_guard<std::mutex> lock(m_Mutex);
 	m_UnnamedItems.erase(std::remove(m_UnnamedItems.begin(), m_UnnamedItems.end(), this), m_UnnamedItems.end());
 	m_Items[m_Type].erase(m_Name);
 	m_DefaultTemplates[m_Type].erase(m_Name);
@@ -373,7 +373,7 @@ void ConfigItem::Unregister(void)
  */
 ConfigItem::Ptr ConfigItem::GetByTypeAndName(const Type::Ptr& type, const String& name)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::lock_guard<std::mutex> lock(m_Mutex);
 
 	auto it = m_Items.find(type);
 
@@ -394,7 +394,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 	std::vector<ItemPair> items;
 
 	{
-		boost::mutex::scoped_lock lock(m_Mutex);
+		std::lock_guard<std::mutex> lock(m_Mutex);
 
 		for (const TypeMap::value_type& kv : m_Items) {
 			for (const ItemMap::value_type& kv2 : kv.second) {
@@ -486,7 +486,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 								item->Unregister();
 
 								{
-									boost::mutex::scoped_lock lock(item->m_Mutex);
+									std::lock_guard<std::mutex> lock(item->m_Mutex);
 									item->m_IgnoredItems.push_back(item->m_DebugInfo.Path);
 								}
 
@@ -574,8 +574,8 @@ bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& u
 
 bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr>& newItems, bool runtimeCreated, bool silent, bool withModAttrs)
 {
-	static boost::mutex mtx;
-	boost::mutex::scoped_lock lock(mtx);
+	static std::mutex mtx;
+	std::lock_guard<std::mutex> lock(mtx);
 
 	if (withModAttrs) {
 		/* restore modified attributes */
@@ -685,7 +685,7 @@ std::vector<ConfigItem::Ptr> ConfigItem::GetItems(const Type::Ptr& type)
 {
 	std::vector<ConfigItem::Ptr> items;
 
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::lock_guard<std::mutex> lock(m_Mutex);
 
 	auto it = m_Items.find(type);
 
@@ -705,7 +705,7 @@ std::vector<ConfigItem::Ptr> ConfigItem::GetDefaultTemplates(const Type::Ptr& ty
 {
 	std::vector<ConfigItem::Ptr> items;
 
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::lock_guard<std::mutex> lock(m_Mutex);
 
 	auto it = m_DefaultTemplates.find(type);
 
@@ -723,7 +723,7 @@ std::vector<ConfigItem::Ptr> ConfigItem::GetDefaultTemplates(const Type::Ptr& ty
 
 void ConfigItem::RemoveIgnoredItems(const String& allowedConfigPath)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::lock_guard<std::mutex> lock(m_Mutex);
 
 	for (const String& path : m_IgnoredItems) {
 		if (path.Find(allowedConfigPath) == String::NPos)

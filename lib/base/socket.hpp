@@ -64,7 +64,7 @@ protected:
 
 	int GetError(void) const;
 
-	mutable boost::mutex m_SocketMutex;
+	mutable std::mutex m_SocketMutex;
 
 private:
 	SOCKET m_FD; /**< The socket descriptor. */

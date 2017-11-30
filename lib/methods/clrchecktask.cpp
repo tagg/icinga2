@@ -42,7 +42,7 @@ REGISTER_SCRIPTFUNCTION_NS(Internal, ClrCheck,  &ClrCheckTask::ScriptFunc, "chec
 
 static std::once_flag l_OnceFlag;
 
-static boost::mutex l_ObjectsMutex;
+static std::mutex l_ObjectsMutex;
 static std::map<Checkable::Ptr, variant_t> l_Objects;
 
 static mscorlib::_AppDomainPtr l_AppDomain;
@@ -180,7 +180,7 @@ void ClrCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 	variant_t vtObject;
 
 	{
-		boost::mutex::scoped_lock lock(l_ObjectsMutex);
+		std::lock_guard<std::mutex> lock(l_ObjectsMutex);
 
 		auto it = l_Objects.find(checkable);
 

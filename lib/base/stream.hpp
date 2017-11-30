@@ -141,8 +141,8 @@ protected:
 private:
 	boost::signals2::signal<void(const Stream::Ptr&)> OnDataAvailable;
 
-	boost::mutex m_Mutex;
-	boost::condition_variable m_CV;
+	std::mutex m_Mutex;
+	std::condition_variable m_CV;
 };
 
 }

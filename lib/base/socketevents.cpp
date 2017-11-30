@@ -62,15 +62,14 @@ void SocketEventEngine::WakeUpThread(int sid, bool wait)
 		return;
 
 	if (wait) {
-		boost::mutex::scoped_lock lock(m_EventMutex[tid]);
+		std::unique_lock<std::mutex> lock(m_EventMutex[tid]);
 
 		m_FDChanged[tid] = true;
 
 		while (m_FDChanged[tid]) {
 			(void) send(m_EventFDs[tid][1], "T", 1, 0);
 
-			boost::system_time const timeout = boost::get_system_time() + boost::posix_time::milliseconds(50);
-			m_CV[tid].timed_wait(lock, timeout);
+			m_CV[tid].wait_for(lock, std::chrono::milliseconds(50));
 		}
 	} else {
 		(void) send(m_EventFDs[tid][1], "T", 1, 0);
@@ -139,7 +138,7 @@ void SocketEvents::ChangeEvents(int events)
 	l_SocketIOEngine->ChangeEvents(this, events);
 }
 
-boost::mutex& SocketEventEngine::GetMutex(int tid)
+std::mutex& SocketEventEngine::GetMutex(int tid)
 {
 	return m_EventMutex[tid];
 }
@@ -147,7 +146,7 @@ boost::mutex& SocketEventEngine::GetMutex(int tid)
 bool SocketEvents::IsHandlingEvents(void) const
 {
 	int tid = m_ID % SOCKET_IOTHREADS;
-	boost::mutex::scoped_lock lock(l_SocketIOEngine->GetMutex(tid));
+	std::lock_guard<std::mutex> lock(l_SocketIOEngine->GetMutex(tid));
 	return m_Events;
 }
 

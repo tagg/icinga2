@@ -84,7 +84,7 @@ public:
 	    bool autocomplete = false, int autoindex = -1);
 
 private:
-	static boost::mutex& GetRegistryMutex(void);
+	static std::mutex& GetRegistryMutex(void);
 	static std::map<std::vector<String>, CLICommand::Ptr>& GetRegistry(void);
 };
 

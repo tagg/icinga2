@@ -53,7 +53,7 @@ protected:
 	virtual void OnConfigLoaded(void) override;
 	virtual void OnAllConfigLoaded(void) override;
 private:
-	mutable boost::mutex m_UserMutex;
+	mutable std::mutex m_UserMutex;
 };
 
 }

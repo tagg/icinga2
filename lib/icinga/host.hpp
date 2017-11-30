@@ -74,7 +74,7 @@ protected:
 	virtual void CreateChildObjects(const Type::Ptr& childType) override;
 
 private:
-	mutable boost::mutex m_ServicesMutex;
+	mutable std::mutex m_ServicesMutex;
 	std::map<String, intrusive_ptr<Service> > m_Services;
 
 	static void RefreshServicesCache(void);

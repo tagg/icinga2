@@ -77,7 +77,7 @@ void WorkQueue::Enqueue(std::function<void (void)>&& function, WorkQueuePriority
 		return;
 	}
 
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::unique_lock<std::mutex> lock(m_Mutex);
 
 	if (!m_Spawned) {
 		Log(LogNotice, "WorkQueue")
@@ -108,7 +108,7 @@ void WorkQueue::Enqueue(std::function<void (void)>&& function, WorkQueuePriority
  */
 void WorkQueue::Join(bool stop)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::unique_lock<std::mutex> lock(m_Mutex);
 
 	while (m_Processing || !m_Tasks.empty())
 		m_CVStarved.wait(lock);
@@ -154,7 +154,7 @@ void WorkQueue::SetExceptionCallback(const ExceptionCallback& callback)
  */
 bool WorkQueue::HasExceptions(void) const
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::lock_guard<std::mutex> lock(m_Mutex);
  
 	return !m_Exceptions.empty();
 }
@@ -165,7 +165,7 @@ bool WorkQueue::HasExceptions(void) const
  */
 std::vector<boost::exception_ptr> WorkQueue::GetExceptions(void) const
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::lock_guard<std::mutex> lock(m_Mutex);
  
 	return m_Exceptions;
 }
@@ -185,14 +185,14 @@ void WorkQueue::ReportExceptions(const String& facility) const
 
 size_t WorkQueue::GetLength(void) const
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::lock_guard<std::mutex> lock(m_Mutex);
 
 	return m_Tasks.size();
 }
 
 void WorkQueue::StatusTimerHandler(void)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::lock_guard<std::mutex> lock(m_Mutex);
 
 	ASSERT(!m_Name.IsEmpty());
 
@@ -239,7 +239,7 @@ void WorkQueue::WorkerThreadProc(void)
 
 	l_ThreadWorkQueue.reset(new WorkQueue *(this));
 
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::unique_lock<std::mutex> lock(m_Mutex);
 
 	for (;;) {
 		while (m_Tasks.empty() && !m_Stopped)
@@ -291,12 +291,12 @@ void WorkQueue::IncreaseTaskCount(void)
 {
 	double now = Utility::GetTime();
 
-	boost::mutex::scoped_lock lock(m_StatsMutex);
+	std::lock_guard<std::mutex> lock(m_StatsMutex);
 	m_TaskStats.InsertValue(now, 1);
 }
 
 int WorkQueue::GetTaskCount(RingBuffer::SizeType span) const
 {
-	boost::mutex::scoped_lock lock(m_StatsMutex);
+	std::lock_guard<std::mutex> lock(m_StatsMutex);
 	return m_TaskStats.GetValues(span);
 }

@@ -271,7 +271,7 @@ void HttpServerConnection::DataAvailableHandler(void)
 	bool close = false;
 
 	if (!m_Stream->IsEof()) {
-		boost::mutex::scoped_lock lock(m_DataHandlerMutex);
+		std::lock_guard<std::mutex> lock(m_DataHandlerMutex);
 
 		try {
 			while (ProcessMessage())

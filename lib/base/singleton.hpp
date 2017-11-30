@@ -21,7 +21,6 @@
 #define SINGLETON_H
 
 #include "base/i2-base.hpp"
-#include <boost/thread/mutex.hpp>
 
 namespace icinga
 {
@@ -38,8 +37,8 @@ public:
 	static T *GetInstance(void)
 	{
 		/* FIXME: This relies on static initializers being atomic. */
-		static boost::mutex mutex;
-		boost::mutex::scoped_lock lock(mutex);
+		static std::mutex mutex;
+		std::lock_guard<std::mutex> lock(mutex);
 
 		static T *instance;
 

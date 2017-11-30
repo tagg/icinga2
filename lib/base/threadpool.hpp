@@ -23,8 +23,6 @@
 #include "base/i2-base.hpp"
 #include <boost/function.hpp>
 #include <boost/thread/thread.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition_variable.hpp>
 #include <deque>
 #include <thread>
 
@@ -93,9 +91,9 @@ private:
 
 	struct Queue
 	{
-		boost::mutex Mutex;
-		boost::condition_variable CV;
-		boost::condition_variable CVStarved;
+		std::mutex Mutex;
+		std::condition_variable CV;
+		std::condition_variable CVStarved;
 
 		std::deque<WorkItem> Items;
 
@@ -123,8 +121,8 @@ private:
 	boost::thread_group m_ThreadGroup;
 
 	std::thread m_MgmtThread;
-	boost::mutex m_MgmtMutex;
-	boost::condition_variable m_MgmtCV;
+	std::mutex m_MgmtMutex;
+	std::condition_variable m_MgmtCV;
 	bool m_Stopped;
 
 	Queue m_Queues[QUEUECOUNT];

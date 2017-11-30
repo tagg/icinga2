@@ -160,7 +160,7 @@ String Socket::GetAddressFromSockaddr(sockaddr *address, socklen_t len)
  */
 String Socket::GetClientAddress(void)
 {
-	boost::mutex::scoped_lock lock(m_SocketMutex);
+	std::lock_guard<std::mutex> lock(m_SocketMutex);
 
 	sockaddr_storage sin;
 	socklen_t len = sizeof(sin);
@@ -200,7 +200,7 @@ String Socket::GetClientAddress(void)
  */
 String Socket::GetPeerAddress(void)
 {
-	boost::mutex::scoped_lock lock(m_SocketMutex);
+	std::lock_guard<std::mutex> lock(m_SocketMutex);
 
 	sockaddr_storage sin;
 	socklen_t len = sizeof(sin);

@@ -33,7 +33,7 @@ using namespace icinga;
 REGISTER_TYPE(Logger);
 
 std::set<Logger::Ptr> Logger::m_Loggers;
-boost::mutex Logger::m_Mutex;
+std::mutex Logger::m_Mutex;
 bool Logger::m_ConsoleLogEnabled = true;
 bool Logger::m_TimestampEnabled = true;
 LogSeverity Logger::m_ConsoleLogSeverity = LogInformation;
@@ -53,14 +53,14 @@ void Logger::Start(bool runtimeCreated)
 {
 	ObjectImpl<Logger>::Start(runtimeCreated);
 
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::lock_guard<std::mutex> lock(m_Mutex);
 	m_Loggers.insert(this);
 }
 
 void Logger::Stop(bool runtimeRemoved)
 {
 	{
-		boost::mutex::scoped_lock lock(m_Mutex);
+		std::lock_guard<std::mutex> lock(m_Mutex);
 		m_Loggers.erase(this);
 	}
 
@@ -69,7 +69,7 @@ void Logger::Stop(bool runtimeRemoved)
 
 std::set<Logger::Ptr> Logger::GetLoggers(void)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::lock_guard<std::mutex> lock(m_Mutex);
 	return m_Loggers;
 }
 

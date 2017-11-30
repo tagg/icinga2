@@ -76,7 +76,7 @@ void SocketEventEngineEpoll::ThreadProc(int tid)
 
 	for (;;) {
 		{
-			boost::mutex::scoped_lock lock(m_EventMutex[tid]);
+			std::lock_guard<std::mutex> lock(m_EventMutex[tid]);
 
 			if (m_FDChanged[tid]) {
 				m_FDChanged[tid] = false;
@@ -90,7 +90,7 @@ void SocketEventEngineEpoll::ThreadProc(int tid)
 		std::vector<EventDescription> events;
 
 		{
-			boost::mutex::scoped_lock lock(m_EventMutex[tid]);
+			std::lock_guard<std::mutex> lock(m_EventMutex[tid]);
 
 			if (m_FDChanged[tid]) {
 				m_FDChanged[tid] = false;
@@ -139,7 +139,7 @@ void SocketEventEngineEpoll::Register(SocketEvents *se, Object *lifesupportObjec
 	int tid = se->m_ID % SOCKET_IOTHREADS;
 
 	{
-		boost::mutex::scoped_lock lock(m_EventMutex[tid]);
+		std::lock_guard<std::mutex> lock(m_EventMutex[tid]);
 
 		VERIFY(se->m_FD != INVALID_SOCKET);
 
@@ -166,7 +166,7 @@ void SocketEventEngineEpoll::Unregister(SocketEvents *se)
 	int tid = se->m_ID % SOCKET_IOTHREADS;
 
 	{
-		boost::mutex::scoped_lock lock(m_EventMutex[tid]);
+		std::lock_guard<std::mutex> lock(m_EventMutex[tid]);
 
 		if (se->m_FD == INVALID_SOCKET)
 			return;
@@ -191,7 +191,7 @@ void SocketEventEngineEpoll::ChangeEvents(SocketEvents *se, int events)
 	int tid = se->m_ID % SOCKET_IOTHREADS;
 
 	{
-		boost::mutex::scoped_lock lock(m_EventMutex[tid]);
+		std::lock_guard<std::mutex> lock(m_EventMutex[tid]);
 
 		auto it = m_Sockets[tid].find(se->m_FD);
 

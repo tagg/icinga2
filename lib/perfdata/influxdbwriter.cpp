@@ -394,7 +394,7 @@ void InfluxdbWriter::SendMetric(const Dictionary::Ptr& tmpl, const String& label
 	    << "Add to metric list: '" << msgbuf.str() << "'.";
 
 	// Atomically buffer the data point
-	boost::mutex::scoped_lock lock(m_DataBufferMutex);
+	std::lock_guard<std::mutex> lock(m_DataBufferMutex);
 	m_DataBuffer.push_back(String(msgbuf.str()));
 
 	// Flush if we've buffered too much to prevent excessive memory use
@@ -409,7 +409,7 @@ void InfluxdbWriter::FlushTimeout(void)
 {
 	// Prevent new data points from being added to the array, there is a
 	// race condition where they could disappear
-	boost::mutex::scoped_lock lock(m_DataBufferMutex);
+	std::lock_guard<std::mutex> lock(m_DataBufferMutex);
 
 	// Flush if there are any data available
 	if (m_DataBuffer.size() > 0) {

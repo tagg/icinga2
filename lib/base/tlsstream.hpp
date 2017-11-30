@@ -76,8 +76,8 @@ public:
 private:
 	std::shared_ptr<SSL> m_SSL;
 	bool m_Eof;
-	mutable boost::mutex m_Mutex;
-	mutable boost::condition_variable m_CV;
+	mutable std::mutex m_Mutex;
+	mutable std::condition_variable m_CV;
 	bool m_HandshakeOK;
 	bool m_VerifyOK;
 	String m_VerifyError;

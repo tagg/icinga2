@@ -71,7 +71,7 @@ public:
 		while (likely(!__sync_bool_compare_and_swap(&object->m_Mutex, I2MUTEX_UNLOCKED, I2MUTEX_LOCKED))) {
 #endif /* _WIN32 */
 			if (likely(object->m_Mutex > I2MUTEX_LOCKED)) {
-				boost::recursive_mutex *mtx = reinterpret_cast<boost::recursive_mutex *>(object->m_Mutex);
+				std::recursive_mutex *mtx = reinterpret_cast<std::recursive_mutex *>(object->m_Mutex);
 				mtx->lock();
 
 				return;
@@ -81,7 +81,7 @@ public:
 			it++;
 		}
 
-		boost::recursive_mutex *mtx = new boost::recursive_mutex();
+		std::recursive_mutex *mtx = new std::recursive_mutex();
 		mtx->lock();
 #ifdef _WIN32
 #	ifdef _WIN64
@@ -143,7 +143,7 @@ public:
 #endif /* I2_DEBUG */
 
 		if (m_Locked) {
-			reinterpret_cast<boost::recursive_mutex *>(m_Object->m_Mutex)->unlock();
+			reinterpret_cast<std::recursive_mutex *>(m_Object->m_Mutex)->unlock();
 			m_Locked = false;
 		}
 	}

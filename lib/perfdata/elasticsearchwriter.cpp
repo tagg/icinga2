@@ -344,7 +344,7 @@ void ElasticsearchWriter::NotificationSentToAllUsersHandlerInternal(const Notifi
 void ElasticsearchWriter::Enqueue(String type, const Dictionary::Ptr& fields, double ts)
 {
 	/* Atomically buffer the data point. */
-	boost::mutex::scoped_lock lock(m_DataBufferMutex);
+	std::lock_guard<std::mutex> lock(m_DataBufferMutex);
 
 	/* Format the timestamps to dynamically select the date datatype inside the index. */
 	fields->Set("@timestamp", FormatTimestamp(ts));
@@ -378,7 +378,7 @@ void ElasticsearchWriter::FlushTimeout(void)
 	/* Prevent new data points from being added to the array, there is a
 	 * race condition where they could disappear.
 	 */
-	boost::mutex::scoped_lock lock(m_DataBufferMutex);
+	std::lock_guard<std::mutex> lock(m_DataBufferMutex);
 
 	/* Flush if there are any data available. */
 	if (m_DataBuffer.size() > 0) {

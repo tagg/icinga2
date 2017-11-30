@@ -26,7 +26,6 @@
 #include "base/tcpsocket.hpp"
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
-#include <boost/thread/mutex.hpp>
 #include <fstream>
 
 namespace icinga
@@ -59,7 +58,7 @@ private:
 	WorkQueue m_WorkQueue;
 	Timer::Ptr m_FlushTimer;
 	std::vector<String> m_DataBuffer;
-	boost::mutex m_DataBufferMutex;
+	std::mutex m_DataBufferMutex;
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void InternalCheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);

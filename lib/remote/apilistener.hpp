@@ -120,8 +120,8 @@ private:
 	std::shared_ptr<SSL_CTX> m_SSLContext;
 	std::set<TcpSocket::Ptr> m_Servers;
 
-	mutable boost::mutex m_AnonymousClientsLock;
-	mutable boost::mutex m_HttpClientsLock;
+	mutable std::mutex m_AnonymousClientsLock;
+	mutable std::mutex m_HttpClientsLock;
 	std::set<JsonRpcConnection::Ptr> m_AnonymousClients;
 	std::set<HttpServerConnection::Ptr> m_HttpClients;
 
@@ -147,7 +147,7 @@ private:
 	WorkQueue m_RelayQueue;
 	WorkQueue m_SyncQueue;
 
-	boost::mutex m_LogLock;
+	std::mutex m_LogLock;
 	Stream::Ptr m_LogFile;
 	size_t m_LogMessageCount;
 

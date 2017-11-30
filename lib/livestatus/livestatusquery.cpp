@@ -49,7 +49,7 @@
 using namespace icinga;
 
 static int l_ExternalCommands = 0;
-static boost::mutex l_QueryMutex;
+static std::mutex l_QueryMutex;
 
 LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String& compat_log_path)
 	: m_KeepAlive(false), m_OutputFormat("csv"), m_ColumnHeaders(true), m_Limit(-1), m_ErrorCode(0),
@@ -281,7 +281,7 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 
 int LivestatusQuery::GetExternalCommands(void)
 {
-	boost::mutex::scoped_lock lock(l_QueryMutex);
+	std::lock_guard<std::mutex> lock(l_QueryMutex);
 
 	return l_ExternalCommands;
 }
@@ -592,7 +592,7 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 void LivestatusQuery::ExecuteCommandHelper(const Stream::Ptr& stream)
 {
 	{
-		boost::mutex::scoped_lock lock(l_QueryMutex);
+		std::lock_guard<std::mutex> lock(l_QueryMutex);
 
 		l_ExternalCommands++;
 	}

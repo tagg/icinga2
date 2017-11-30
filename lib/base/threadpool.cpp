@@ -62,7 +62,7 @@ void ThreadPool::Stop(void)
 		return;
 
 	{
-		boost::mutex::scoped_lock lock(m_MgmtMutex);
+		std::lock_guard<std::mutex> lock(m_MgmtMutex);
 		m_Stopped = true;
 		m_MgmtCV.notify_all();
 	}
@@ -71,7 +71,7 @@ void ThreadPool::Stop(void)
 		m_MgmtThread.join();
 
 	for (size_t i = 0; i < sizeof(m_Queues) / sizeof(m_Queues[0]); i++) {
-		boost::mutex::scoped_lock lock(m_Queues[i].Mutex);
+		std::lock_guard<std::mutex> lock(m_Queues[i].Mutex);
 		m_Queues[i].Stopped = true;
 		m_Queues[i].CV.notify_all();
 	}
@@ -99,7 +99,7 @@ void ThreadPool::WorkerThread::ThreadProc(Queue& queue)
 		WorkItem wi;
 
 		{
-			boost::mutex::scoped_lock lock(queue.Mutex);
+			std::unique_lock<std::mutex> lock(queue.Mutex);
 
 			UpdateUtilization(ThreadIdle);
 
@@ -147,7 +147,7 @@ void ThreadPool::WorkerThread::ThreadProc(Queue& queue)
 		double latency = st - wi.Timestamp;
 
 		{
-			boost::mutex::scoped_lock lock(queue.Mutex);
+			std::lock_guard<std::mutex> lock(queue.Mutex);
 
 			queue.WaitTime += latency;
 			queue.ServiceTime += et - st;
@@ -183,7 +183,7 @@ void ThreadPool::WorkerThread::ThreadProc(Queue& queue)
 #endif /* I2_DEBUG */
 	}
 
-	boost::mutex::scoped_lock lock(queue.Mutex);
+	std::lock_guard<std::mutex> lock(queue.Mutex);
 	UpdateUtilization(ThreadDead);
 	Zombie = false;
 }
@@ -204,7 +204,7 @@ bool ThreadPool::Post(const ThreadPool::WorkFunction& callback, SchedulerPolicy 
 	Queue& queue = m_Queues[Utility::Random() % (sizeof(m_Queues) / sizeof(m_Queues[0]))];
 
 	{
-		boost::mutex::scoped_lock lock(queue.Mutex);
+		std::lock_guard<std::mutex> lock(queue.Mutex);
 
 		if (queue.Stopped)
 			return false;
@@ -233,10 +233,10 @@ void ThreadPool::ManagerThreadProc(void)
 		double total_utilization = 0;
 
 		{
-			boost::mutex::scoped_lock lock(m_MgmtMutex);
+			std::unique_lock<std::mutex> lock(m_MgmtMutex);
 
 			if (!m_Stopped)
-				m_MgmtCV.timed_wait(lock, boost::posix_time::milliseconds(500));
+				m_MgmtCV.wait_for(lock, std::chrono::milliseconds(500));
 
 			if (m_Stopped)
 				break;
@@ -249,7 +249,7 @@ void ThreadPool::ManagerThreadProc(void)
 
 			Queue& queue = m_Queues[i];
 
-			boost::mutex::scoped_lock lock(queue.Mutex);
+			std::lock_guard<std::mutex> lock(queue.Mutex);
 
 			for (size_t i = 0; i < sizeof(queue.Threads) / sizeof(queue.Threads[0]); i++)
 				queue.Threads[i].UpdateUtilization();

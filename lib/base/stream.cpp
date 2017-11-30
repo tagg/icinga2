@@ -55,7 +55,7 @@ void Stream::SignalDataAvailable(void)
 	OnDataAvailable(this);
 
 	{
-		boost::mutex::scoped_lock lock(m_Mutex);
+		std::lock_guard<std::mutex> lock(m_Mutex);
 		m_CV.notify_all();
 	}
 }
@@ -65,13 +65,15 @@ bool Stream::WaitForData(int timeout)
 	if (!SupportsWaiting())
 		BOOST_THROW_EXCEPTION(std::runtime_error("Stream does not support waiting."));
 
-	boost::mutex::scoped_lock lock(m_Mutex);
+	{
+		std::unique_lock<std::mutex> lock(m_Mutex);
 
-	while (!IsDataAvailable() && !IsEof())
-		if (timeout < 0)
-			m_CV.wait(lock);
-		else
-			m_CV.timed_wait(lock, boost::posix_time::milliseconds(timeout * 1000));
+		while (!IsDataAvailable() && !IsEof())
+			if (timeout < 0)
+				m_CV.wait(lock);
+			else
+				m_CV.wait_for(lock, std::chrono::milliseconds(timeout * 1000));
+	}
 
 	return IsDataAvailable() || IsEof();
 }

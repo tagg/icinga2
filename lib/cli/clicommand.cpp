@@ -111,9 +111,9 @@ bool CLICommand::IsDeprecated(void) const
 	return false;
 }
 
-boost::mutex& CLICommand::GetRegistryMutex(void)
+std::mutex& CLICommand::GetRegistryMutex(void)
 {
-	static boost::mutex mtx;
+	static std::mutex mtx;
 	return mtx;
 }
 
@@ -125,7 +125,7 @@ std::map<std::vector<String>, CLICommand::Ptr>& CLICommand::GetRegistry(void)
 
 CLICommand::Ptr CLICommand::GetByName(const std::vector<String>& name)
 {
-	boost::mutex::scoped_lock lock(GetRegistryMutex());
+	std::lock_guard<std::mutex> lock(GetRegistryMutex());
 
 	auto it = GetRegistry().find(name);
 
@@ -137,13 +137,13 @@ CLICommand::Ptr CLICommand::GetByName(const std::vector<String>& name)
 
 void CLICommand::Register(const std::vector<String>& name, const CLICommand::Ptr& function)
 {
-	boost::mutex::scoped_lock lock(GetRegistryMutex());
+	std::lock_guard<std::mutex> lock(GetRegistryMutex());
 	GetRegistry()[name] = function;
 }
 
 void CLICommand::Unregister(const std::vector<String>& name)
 {
-	boost::mutex::scoped_lock lock(GetRegistryMutex());
+	std::lock_guard<std::mutex> lock(GetRegistryMutex());
 	GetRegistry().erase(name);
 }
 
@@ -171,7 +171,7 @@ bool CLICommand::ParseCommand(int argc, char **argv, po::options_description& vi
     po::positional_options_description& positionalDesc,
     po::variables_map& vm, String& cmdname, CLICommand::Ptr& command, bool autocomplete)
 {
-	boost::mutex::scoped_lock lock(GetRegistryMutex());
+	std::unique_lock<std::mutex> lock(GetRegistryMutex());
 
 	typedef std::map<std::vector<String>, CLICommand::Ptr>::value_type CLIKeyValue;
 
@@ -240,7 +240,7 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
     ArgumentCompletionCallback globalArgCompletionCallback,
     bool autocomplete, int autoindex)
 {
-	boost::mutex::scoped_lock lock(GetRegistryMutex());
+	std::lock_guard<std::mutex> lock(GetRegistryMutex());
 
 	typedef std::map<std::vector<String>, CLICommand::Ptr>::value_type CLIKeyValue;
 

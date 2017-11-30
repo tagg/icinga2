@@ -20,8 +20,6 @@
 #include "base/timer.hpp"
 #include "base/debug.hpp"
 #include "base/utility.hpp"
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition_variable.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/key_extractors.hpp>
@@ -66,8 +64,8 @@ typedef boost::multi_index_container<
 	>
 > TimerSet;
 
-static boost::mutex l_TimerMutex;
-static boost::condition_variable l_TimerCV;
+static std::mutex l_TimerMutex;
+static std::condition_variable l_TimerCV;
 static std::thread l_TimerThread;
 static bool l_StopTimerThread;
 static TimerSet l_Timers;
@@ -111,7 +109,7 @@ void Timer::Call(void)
  */
 void Timer::SetInterval(double interval)
 {
-	boost::mutex::scoped_lock lock(l_TimerMutex);
+	std::lock_guard<std::mutex> lock(l_TimerMutex);
 	m_Interval = interval;
 }
 
@@ -122,7 +120,7 @@ void Timer::SetInterval(double interval)
  */
 double Timer::GetInterval(void) const
 {
-	boost::mutex::scoped_lock lock(l_TimerMutex);
+	std::lock_guard<std::mutex> lock(l_TimerMutex);
 	return m_Interval;
 }
 
@@ -132,7 +130,7 @@ double Timer::GetInterval(void) const
 void Timer::Start(void)
 {
 	{
-		boost::mutex::scoped_lock lock(l_TimerMutex);
+		std::lock_guard<std::mutex> lock(l_TimerMutex);
 		m_Started = true;
 
 		if (l_AliveTimers++ == 0) {
@@ -152,7 +150,7 @@ void Timer::Stop(bool wait)
 	if (l_StopTimerThread)
 		return;
 
-	boost::mutex::scoped_lock lock(l_TimerMutex);
+	std::unique_lock<std::mutex> lock(l_TimerMutex);
 
 	if (m_Started && --l_AliveTimers == 0) {
 		l_StopTimerThread = true;
@@ -190,7 +188,7 @@ void Timer::Reschedule(double next)
  */
 void Timer::InternalReschedule(bool completed, double next)
 {
-	boost::mutex::scoped_lock lock(l_TimerMutex);
+	std::lock_guard<std::mutex> lock(l_TimerMutex);
 
 	if (completed)
 		m_Running = false;
@@ -222,7 +220,7 @@ void Timer::InternalReschedule(bool completed, double next)
  */
 double Timer::GetNext(void) const
 {
-	boost::mutex::scoped_lock lock(l_TimerMutex);
+	std::lock_guard<std::mutex> lock(l_TimerMutex);
 	return m_Next;
 }
 
@@ -234,7 +232,7 @@ double Timer::GetNext(void) const
  */
 void Timer::AdjustTimers(double adjustment)
 {
-	boost::mutex::scoped_lock lock(l_TimerMutex);
+	std::lock_guard<std::mutex> lock(l_TimerMutex);
 
 	double now = Utility::GetTime();
 
@@ -268,39 +266,41 @@ void Timer::TimerThreadProc(void)
 	Utility::SetThreadName("Timer Thread");
 
 	for (;;) {
-		boost::mutex::scoped_lock lock(l_TimerMutex);
+		Timer::Ptr ptimer;
 
-		typedef boost::multi_index::nth_index<TimerSet, 1>::type NextTimerView;
-		NextTimerView& idx = boost::get<1>(l_Timers);
+		{
+			std::unique_lock<std::mutex> lock(l_TimerMutex);
 
-		/* Wait until there is at least one timer. */
-		while (idx.empty() && !l_StopTimerThread)
-			l_TimerCV.wait(lock);
+			typedef boost::multi_index::nth_index<TimerSet, 1>::type NextTimerView;
+			NextTimerView& idx = boost::get<1>(l_Timers);
 
-		if (l_StopTimerThread)
-			break;
+			/* Wait until there is at least one timer. */
+			while (idx.empty() && !l_StopTimerThread)
+				l_TimerCV.wait(lock);
 
-		auto it = idx.begin();
-		Timer *timer = *it;
+			if (l_StopTimerThread)
+				break;
 
-		double wait = timer->m_Next - Utility::GetTime();
+			auto it = idx.begin();
+			Timer *timer = *it;
 
-		if (wait > 0.01) {
-			/* Wait for the next timer. */
-			l_TimerCV.timed_wait(lock, boost::posix_time::milliseconds(wait * 1000));
+			double wait = timer->m_Next - Utility::GetTime();
 
-			continue;
+			if (wait > 0.01) {
+				/* Wait for the next timer. */
+				l_TimerCV.wait_for(lock, std::chrono::milliseconds(static_cast<int>(wait * 1000)));
+
+				continue;
+			}
+
+			ptimer = timer;
+
+			/* Remove the timer from the list so it doesn't get called again
+			 * until the current call is completed. */
+			l_Timers.erase(timer);
+
+			timer->m_Running = true;
 		}
-
-		Timer::Ptr ptimer = timer;
-
-		/* Remove the timer from the list so it doesn't get called again
-		 * until the current call is completed. */
-		l_Timers.erase(timer);
-
-		timer->m_Running = true;
-
-		lock.unlock();
 
 		/* Asynchronously call the timer. */
 		Utility::QueueAsyncCallback(std::bind(&Timer::Call, ptimer));

@@ -100,7 +100,7 @@ public:
 
 	void WakeUpThread(int sid, bool wait);
 
-	boost::mutex& GetMutex(int tid);
+	std::mutex& GetMutex(int tid);
 
 protected:
 	virtual void InitializeThread(int tid) = 0;
@@ -112,8 +112,8 @@ protected:
 	std::thread m_Threads[SOCKET_IOTHREADS];
 	SOCKET m_EventFDs[SOCKET_IOTHREADS][2];
 	bool m_FDChanged[SOCKET_IOTHREADS];
-	boost::mutex m_EventMutex[SOCKET_IOTHREADS];
-	boost::condition_variable m_CV[SOCKET_IOTHREADS];
+	std::mutex m_EventMutex[SOCKET_IOTHREADS];
+	std::condition_variable m_CV[SOCKET_IOTHREADS];
 	std::map<SOCKET, SocketEventDescriptor> m_Sockets[SOCKET_IOTHREADS];
 
 	friend class SocketEvents;

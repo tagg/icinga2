@@ -469,13 +469,13 @@ void DbConnection::IncreaseQueryCount(void)
 {
 	double now = Utility::GetTime();
 
-	boost::mutex::scoped_lock lock(m_StatsMutex);
+	std::lock_guard<std::mutex> lock(m_StatsMutex);
 	m_QueryStats.InsertValue(now, 1);
 }
 
 int DbConnection::GetQueryCount(RingBuffer::SizeType span) const
 {
-	boost::mutex::scoped_lock lock(m_StatsMutex);
+	std::lock_guard<std::mutex> lock(m_StatsMutex);
 	return m_QueryStats.GetValues(span);
 }
 

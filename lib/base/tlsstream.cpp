@@ -121,7 +121,7 @@ String TlsStream::GetVerifyError(void) const
  */
 std::shared_ptr<X509> TlsStream::GetClientCertificate(void) const
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::lock_guard<std::mutex> lock(m_Mutex);
 	return std::shared_ptr<X509>(SSL_get_certificate(m_SSL.get()), &Utility::NullDeleter);
 }
 
@@ -132,7 +132,7 @@ std::shared_ptr<X509> TlsStream::GetClientCertificate(void) const
  */
 std::shared_ptr<X509> TlsStream::GetPeerCertificate(void) const
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::lock_guard<std::mutex> lock(m_Mutex);
 	return std::shared_ptr<X509>(SSL_get_peer_certificate(m_SSL.get()), X509_free);
 }
 
@@ -141,7 +141,7 @@ void TlsStream::OnEvent(int revents)
 	int rc;
 	size_t count;
 
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::unique_lock<std::mutex> lock(m_Mutex);
 
 	if (!m_SSL)
 		return;
@@ -280,7 +280,7 @@ void TlsStream::HandleError(void) const
 
 void TlsStream::Handshake(void)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::unique_lock<std::mutex> lock(m_Mutex);
 
 	m_CurrentAction = TlsActionHandshake;
 	ChangeEvents(POLLOUT);
@@ -299,7 +299,7 @@ void TlsStream::Handshake(void)
  */
 size_t TlsStream::Peek(void *buffer, size_t count, bool allow_partial)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::unique_lock<std::mutex> lock(m_Mutex);
 
 	if (!allow_partial)
 		while (m_RecvQ->GetAvailableBytes() < count && !m_ErrorOccurred && !m_Eof)
@@ -312,7 +312,7 @@ size_t TlsStream::Peek(void *buffer, size_t count, bool allow_partial)
 
 size_t TlsStream::Read(void *buffer, size_t count, bool allow_partial)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::unique_lock<std::mutex> lock(m_Mutex);
 
 	if (!allow_partial)
 		while (m_RecvQ->GetAvailableBytes() < count && !m_ErrorOccurred && !m_Eof)
@@ -325,7 +325,7 @@ size_t TlsStream::Read(void *buffer, size_t count, bool allow_partial)
 
 void TlsStream::Write(const void *buffer, size_t count)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::lock_guard<std::mutex> lock(m_Mutex);
 
 	m_SendQ->Write(buffer, count);
 
@@ -360,7 +360,7 @@ void TlsStream::CloseInternal(bool inDestructor)
 
 	Stream::Close();
 
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::lock_guard<std::mutex> lock(m_Mutex);
 
 	if (!m_SSL)
 		return;
@@ -386,7 +386,7 @@ bool TlsStream::SupportsWaiting(void) const
 
 bool TlsStream::IsDataAvailable(void) const
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::lock_guard<std::mutex> lock(m_Mutex);
 
 	return m_RecvQ->GetAvailableBytes() > 0;
 }
