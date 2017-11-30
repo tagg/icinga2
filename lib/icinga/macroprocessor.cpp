@@ -542,7 +542,7 @@ Value MacroProcessor::ResolveArguments(const Value& command, const Dictionary::P
 				continue;
 			}
 
-			args.push_back(arg);
+			args.emplace_back(std::move(arg));
 		}
 
 		std::sort(args.begin(), args.end());
