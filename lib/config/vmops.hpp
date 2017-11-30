@@ -136,7 +136,7 @@ public:
 			NameComposer *nc = dynamic_cast<NameComposer *>(type.get());
 
 			if (nc)
-				checkName = nc->MakeName(name, Dictionary::Ptr());
+				checkName = nc->MakeName(name, nullptr);
 		}
 
 		if (!checkName.IsEmpty()) {

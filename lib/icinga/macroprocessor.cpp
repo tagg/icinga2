@@ -292,7 +292,7 @@ Value MacroProcessor::InternalResolveMacros(const String& str, const ResolverLis
 				for (const Value& value : arr) {
 					if (value.IsScalar()) {
 						resolved_arr->Add(InternalResolveMacros(value,
-							resolvers, cr, missingMacro, EscapeCallback(), Dictionary::Ptr(),
+							resolvers, cr, missingMacro, EscapeCallback(), nullptr,
 							false, recursionLevel + 1));
 					} else
 						resolved_arr->Add(value);
@@ -301,7 +301,7 @@ Value MacroProcessor::InternalResolveMacros(const String& str, const ResolverLis
 				resolved_macro = resolved_arr;
 			} else if (resolved_macro.IsString()) {
 				resolved_macro = InternalResolveMacros(resolved_macro,
-					resolvers, cr, missingMacro, EscapeCallback(), Dictionary::Ptr(),
+					resolvers, cr, missingMacro, EscapeCallback(), nullptr,
 					false, recursionLevel + 1);
 			}
 		}

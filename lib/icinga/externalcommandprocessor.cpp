@@ -1356,7 +1356,7 @@ void ExternalCommandProcessor::SendCustomHostNotification(double, const std::vec
 	}
 
 	Checkable::OnNotificationsRequested(host, NotificationCustom,
-	    host->GetLastCheckResult(), arguments[2], arguments[3], MessageOrigin::Ptr());
+	    host->GetLastCheckResult(), arguments[2], arguments[3], nullptr);
 }
 
 void ExternalCommandProcessor::SendCustomSvcNotification(double, const std::vector<String>& arguments)
@@ -1376,7 +1376,7 @@ void ExternalCommandProcessor::SendCustomSvcNotification(double, const std::vect
 	}
 
 	Service::OnNotificationsRequested(service, NotificationCustom,
-	    service->GetLastCheckResult(), arguments[3], arguments[4], MessageOrigin::Ptr());
+	    service->GetLastCheckResult(), arguments[3], arguments[4], nullptr);
 }
 
 void ExternalCommandProcessor::DelayHostNotification(double, const std::vector<String>& arguments)
