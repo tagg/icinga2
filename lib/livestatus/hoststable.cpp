@@ -108,7 +108,7 @@ void HostsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "scheduled_downtime_depth", Column(&HostsTable::ScheduledDowntimeDepthAccessor, objectAccessor));
 	table->AddColumn(prefix + "is_executing", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "active_checks_enabled", Column(&HostsTable::ActiveChecksEnabledAccessor, objectAccessor));
-	table->AddColumn(prefix + "check_options", Column(&HostsTable::CheckOptionsAccessor, objectAccessor));
+	table->AddColumn(prefix + "check_options", Column(&Table::EmptyStringAccessor, objectAccessor));
 	table->AddColumn(prefix + "obsess_over_host", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "modified_attributes", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "modified_attributes_list", Column(&Table::ZeroAccessor, objectAccessor));
@@ -774,12 +774,6 @@ Value HostsTable::ActiveChecksEnabledAccessor(const Value& row)
 		return Empty;
 
 	return Convert::ToLong(host->GetEnableActiveChecks());
-}
-
-Value HostsTable::CheckOptionsAccessor(const Value&)
-{
-	/* TODO - forcexec, freshness, orphan, none */
-	return Empty;
 }
 
 Value HostsTable::CheckIntervalAccessor(const Value& row)
