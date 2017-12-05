@@ -202,16 +202,6 @@ String CompatUtility::GetCheckableCheckPeriod(const Checkable::Ptr& checkable)
 		return "24x7";
 }
 
-int CompatUtility::GetCheckableIsFlapping(const Checkable::Ptr& checkable)
-{
-	return (checkable->IsFlapping() ? 1 : 0);
-}
-
-int CompatUtility::GetCheckableIsReachable(const Checkable::Ptr& checkable)
-{
-	return (checkable->IsReachable() ? 1 : 0);
-}
-
 double CompatUtility::GetCheckablePercentStateChange(const Checkable::Ptr& checkable)
 {
 	return checkable->GetFlappingCurrent();

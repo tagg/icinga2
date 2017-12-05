@@ -137,7 +137,7 @@ void DbEvents::FlappingChangedHandler(const Checkable::Ptr& checkable)
 	query1.Object = DbObject::GetOrCreateByObject(checkable);
 
 	Dictionary::Ptr fields1 = new Dictionary();
-	fields1->Set("is_flapping", CompatUtility::GetCheckableIsFlapping(checkable));
+	fields1->Set("is_flapping", checkable->IsFlapping());
 	fields1->Set("percent_state_change", CompatUtility::GetCheckablePercentStateChange(checkable));
 
 	query1.Fields = fields1;

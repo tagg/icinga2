@@ -160,7 +160,7 @@ Dictionary::Ptr HostDbObject::GetStatusFields(void) const
 	fields->Set("active_checks_enabled", host->GetEnableActiveChecks());
 	fields->Set("event_handler_enabled", host->GetEnableEventHandler());
 	fields->Set("flap_detection_enabled", host->GetEnableFlapping());
-	fields->Set("is_flapping", CompatUtility::GetCheckableIsFlapping(host));
+	fields->Set("is_flapping", host->IsFlapping());
 	fields->Set("percent_state_change", CompatUtility::GetCheckablePercentStateChange(host));
 
 	if (cr) {
@@ -177,7 +177,7 @@ Dictionary::Ptr HostDbObject::GetStatusFields(void) const
 	fields->Set("normal_check_interval", CompatUtility::GetCheckableCheckInterval(host));
 	fields->Set("retry_check_interval", CompatUtility::GetCheckableRetryInterval(host));
 	fields->Set("check_timeperiod_object_id", host->GetCheckPeriod());
-	fields->Set("is_reachable", CompatUtility::GetCheckableIsReachable(host));
+	fields->Set("is_reachable", host->IsReachable());
 
 	fields->Set("original_attributes", JsonEncode(host->GetOriginalAttributes()));
 
