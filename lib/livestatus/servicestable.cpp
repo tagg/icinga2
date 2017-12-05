@@ -891,7 +891,7 @@ Value ServicesTable::PercentStateChangeAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetCheckablePercentStateChange(service);
+	return service->GetFlappingCurrent();
 }
 
 Value ServicesTable::InCheckPeriodAccessor(const Value& row)

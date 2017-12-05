@@ -863,7 +863,7 @@ Value HostsTable::PercentStateChangeAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckablePercentStateChange(host);
+	return host->GetFlappingCurrent();
 }
 
 Value HostsTable::InNotificationPeriodAccessor(const Value& row)

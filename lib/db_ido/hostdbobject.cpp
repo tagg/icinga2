@@ -161,7 +161,7 @@ Dictionary::Ptr HostDbObject::GetStatusFields(void) const
 	fields->Set("event_handler_enabled", host->GetEnableEventHandler());
 	fields->Set("flap_detection_enabled", host->GetEnableFlapping());
 	fields->Set("is_flapping", host->IsFlapping());
-	fields->Set("percent_state_change", CompatUtility::GetCheckablePercentStateChange(host));
+	fields->Set("percent_state_change", host->GetFlappingCurrent());
 
 	if (cr) {
 		fields->Set("latency", Convert::ToString(cr->CalculateLatency()));

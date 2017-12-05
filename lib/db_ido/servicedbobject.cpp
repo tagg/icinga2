@@ -149,7 +149,7 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields(void) const
 	fields->Set("event_handler_enabled", service->GetEnableEventHandler());
 	fields->Set("flap_detection_enabled", service->GetEnableFlapping());
 	fields->Set("is_flapping", service->IsFlapping());
-	fields->Set("percent_state_change", CompatUtility::GetCheckablePercentStateChange(service));
+	fields->Set("percent_state_change", service->GetFlappingCurrent());
 
 	if (cr) {
 		fields->Set("latency", Convert::ToString(cr->CalculateLatency()));
