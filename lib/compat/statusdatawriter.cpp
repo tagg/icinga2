@@ -28,6 +28,7 @@
 #include "icinga/timeperiod.hpp"
 #include "icinga/notificationcommand.hpp"
 #include "icinga/compatutility.hpp"
+#include "icinga/pluginutility.hpp"
 #include "icinga/dependency.hpp"
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
@@ -366,28 +367,26 @@ void StatusDataWriter::DumpCheckableStatusAttrs(std::ostream& fp, const Checkabl
 	}
 
 	fp << "\t" "state_type=" << checkable->GetStateType() << "\n"
-		"\t" "plugin_output=" << CompatUtility::GetCheckResultOutput(cr) << "\n"
-		"\t" "long_plugin_output=" << CompatUtility::GetCheckResultLongOutput(cr) << "\n"
-		"\t" "performance_data=" << CompatUtility::GetCheckResultPerfdata(cr) << "\n";
+		"\t" "last_check=" << static_cast<long>(host->GetLastCheck()) << "\n";
 
 	if (cr) {
-		fp << "\t" << "check_source=" << cr->GetCheckSource() << "\n"
-			"\t" "last_check=" << static_cast<long>(cr->GetScheduleEnd()) << "\n";
+		fp << "\t" "plugin_output=" << CompatUtility::GetCheckResultOutput(cr) << "\n"
+			"\t" "long_plugin_output=" << CompatUtility::GetCheckResultLongOutput(cr) << "\n"
+			"\t" "performance_data=" << PluginUtility::FormatPerfdata(cr->GetPerformanceData()) << "\n"
 	}
 
 	fp << "\t" << "next_check=" << static_cast<long>(checkable->GetNextCheck()) << "\n"
-<<<<<<< HEAD
 		"\t" "current_attempt=" << checkable->GetCheckAttempt() << "\n"
 		"\t" "max_attempts=" << checkable->GetMaxCheckAttempts() << "\n"
 		"\t" "last_state_change=" << static_cast<long>(checkable->GetLastStateChange()) << "\n"
 		"\t" "last_hard_state_change=" << static_cast<long>(checkable->GetLastHardStateChange()) << "\n"
 		"\t" "last_update=" << static_cast<long>(time(NULL)) << "\n"
-		"\t" "notifications_enabled=" << CompatUtility::GetCheckableNotificationsEnabled(checkable) << "\n"
-		"\t" "active_checks_enabled=" << CompatUtility::GetCheckableActiveChecksEnabled(checkable) << "\n"
-		"\t" "passive_checks_enabled=" << CompatUtility::GetCheckablePassiveChecksEnabled(checkable) << "\n"
-		"\t" "flap_detection_enabled=" << CompatUtility::GetCheckableFlapDetectionEnabled(checkable) << "\n"
-		"\t" "is_flapping=" << CompatUtility::GetCheckableIsFlapping(checkable) << "\n"
-		"\t" "percent_state_change=" << CompatUtility::GetCheckablePercentStateChange(checkable) << "\n"
+		"\t" "notifications_enabled" "\t" << Convert::ToLong(checkable->GetEnableNotifications()) << "\n"
+		"\t" "active_checks_enabled=" << Convert::ToLong(checkable->GetEnableActiveChecks()) << "\n"
+		"\t" "passive_checks_enabled=" << Convert::ToLong(checkable->GetEnablePassiveChecks()) << "\n"
+		"\t" "flap_detection_enabled=" << Convert::ToLong(checkable->GetEnableFlapping()) << "\n"
+		"\t" "is_flapping=" << Convert::ToLong(checkable->IsFlapping()) << "\n"
+		"\t" "percent_state_change=" << checkable->GetFlappingCurrent() << "\n"
 		"\t" "problem_has_been_acknowledged=" << (checkable->GetAcknowledgement() != AcknowledgementNone ? 1 : 0) << "\n"
 		"\t" "acknowledgement_type=" << checkable->GetAcknowledgement() << "\n"
 		"\t" "acknowledgement_end_time=" << checkable->GetAcknowledgementExpiry() << "\n"
@@ -395,26 +394,6 @@ void StatusDataWriter::DumpCheckableStatusAttrs(std::ostream& fp, const Checkabl
 		"\t" "last_notification=" << CompatUtility::GetCheckableNotificationLastNotification(checkable) << "\n"
 		"\t" "next_notification=" << CompatUtility::GetCheckableNotificationNextNotification(checkable) << "\n"
 		"\t" "current_notification_number=" << CompatUtility::GetCheckableNotificationNotificationNumber(checkable) << "\n"
-		"\t" "is_reachable=" << CompatUtility::GetCheckableIsReachable(checkable) << "\n";
-=======
-	      "\t" "current_attempt=" << checkable->GetCheckAttempt() << "\n"
-	      "\t" "max_attempts=" << checkable->GetMaxCheckAttempts() << "\n"
-	      "\t" "last_state_change=" << static_cast<long>(checkable->GetLastStateChange()) << "\n"
-	      "\t" "last_hard_state_change=" << static_cast<long>(checkable->GetLastHardStateChange()) << "\n"
-	      "\t" "last_update=" << static_cast<long>(time(NULL)) << "\n"
-	      "\t" "notifications_enabled" "\t" << Convert::ToLong(checkable->GetEnableNotifications()) << "\n"
-	      "\t" "active_checks_enabled=" << Convert::ToLong(checkable->GetEnableActiveChecks()) << "\n"
-	      "\t" "passive_checks_enabled=" << Convert::ToLong(checkable->GetEnablePassiveChecks()) << "\n"
-	      "\t" "flap_detection_enabled=" << Convert::ToLong(checkable->GetEnableFlapping()) << "\n"
-	      "\t" "is_flapping=" << Convert::ToLong(checkable->IsFlapping()) << "\n"
-	      "\t" "percent_state_change=" << checkable->GetFlappingCurrent() << "\n"
-	      "\t" "problem_has_been_acknowledged=" << (checkable->GetAcknowledgement() != AcknowledgementNone ? 1 : 0) << "\n"
-	      "\t" "acknowledgement_type=" << checkable->GetAcknowledgement() << "\n"
-	      "\t" "acknowledgement_end_time=" << checkable->GetAcknowledgementExpiry() << "\n"
-	      "\t" "scheduled_downtime_depth=" << checkable->GetDowntimeDepth() << "\n"
-	      "\t" "last_notification=" << CompatUtility::GetCheckableNotificationLastNotification(checkable) << "\n"
-	      "\t" "next_notification=" << CompatUtility::GetCheckableNotificationNextNotification(checkable) << "\n"
-	      "\t" "current_notification_number=" << CompatUtility::GetCheckableNotificationNotificationNumber(checkable) << "\n"
 		"\t" "is_reachable=" << Convert::ToLong(checkable->IsReachable()) << "\n";
 }
 
