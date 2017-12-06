@@ -97,6 +97,8 @@ private:
 	void UpdateObjectsCache(void);
 	void StatusTimerHandler(void);
 	void ObjectHandler(void);
+
+	static String GetNotificationOptions(const Checkable::Ptr& checkable);
 };
 
 }
