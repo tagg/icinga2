@@ -122,7 +122,7 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 		envp[i] = strdup(environ[i]);
 
 	if (extraEnvironment) {
-		ObjectLock olock(extraEnvironment);
+		RLock olock(extraEnvironment);
 
 		int index = envc;
 		for (const Dictionary::Pair& kv : extraEnvironment) {
@@ -556,7 +556,7 @@ Process::Arguments Process::PrepareCommand(const Value& command)
 	if (command.IsObjectType<Array>()) {
 		Array::Ptr arguments = command;
 
-		ObjectLock olock(arguments);
+		RLock olock(arguments);
 		for (const Value& argument : arguments) {
 #ifdef _WIN32
 			if (args != "")
@@ -889,7 +889,7 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 	FreeEnvironmentStrings(pEnvironment);
 
 	if (m_ExtraEnvironment) {
-		ObjectLock olock(m_ExtraEnvironment);
+		RLock olock(m_ExtraEnvironment);
 
 		for (const Dictionary::Pair& kv : m_ExtraEnvironment) {
 			String skv = kv.first + "=" + Convert::ToString(kv.second);

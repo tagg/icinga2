@@ -50,6 +50,7 @@ public:
 	typedef std::map<String, Value>::value_type Pair;
 
 	Dictionary(void);
+	Dictionary(std::map<String, Value>&& data);
 
 	~Dictionary(void);
 

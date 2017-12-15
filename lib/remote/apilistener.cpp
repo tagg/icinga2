@@ -310,7 +310,7 @@ bool ApiListener::IsMaster(void) const
  */
 bool ApiListener::AddListener(const String& node, const String& service)
 {
-	ObjectLock olock(this);
+	WLock olock(this);
 
 	std::shared_ptr<SSL_CTX> sslContext = m_SSLContext;
 
@@ -365,7 +365,7 @@ void ApiListener::ListenerThreadProc(const Socket::Ptr& server)
 void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 {
 	{
-		ObjectLock olock(this);
+		WLock olock(this);
 
 		std::shared_ptr<SSL_CTX> sslContext = m_SSLContext;
 
@@ -437,7 +437,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 	TlsStream::Ptr tlsStream;
 
 	{
-		ObjectLock olock(this);
+		WLock olock(this);
 		try {
 			tlsStream = new TlsStream(client, hostname, role, m_SSLContext);
 		} catch (const std::exception&) {
@@ -557,7 +557,7 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 
 	try {
 		{
-			ObjectLock olock(endpoint);
+			WLock olock(endpoint);
 
 			endpoint->SetSyncing(true);
 		}
@@ -594,7 +594,7 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 			<< "Finished sending runtime config updates for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
 
 		if (!needSync) {
-			ObjectLock olock2(endpoint);
+			WLock olock2(endpoint);
 			endpoint->SetSyncing(false);
 			return;
 		}
@@ -611,7 +611,7 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 			<< "Finished sending replay log for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
 	} catch (const std::exception& ex) {
 		{
-			ObjectLock olock2(endpoint);
+			WLock olock2(endpoint);
 			endpoint->SetSyncing(false);
 		}
 
@@ -834,7 +834,7 @@ void ApiListener::PersistMessage(const Dictionary::Ptr& message, const ConfigObj
 
 void ApiListener::SyncSendMessage(const Endpoint::Ptr& endpoint, const Dictionary::Ptr& message)
 {
-	ObjectLock olock(endpoint);
+	WLock olock(endpoint);
 
 	if (!endpoint->GetSyncing()) {
 		Log(LogNotice, "ApiListener")
@@ -1051,7 +1051,7 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 	Endpoint::Ptr endpoint = client->GetEndpoint();
 
 	if (endpoint->GetLogDuration() == 0) {
-		ObjectLock olock2(endpoint);
+		WLock olock2(endpoint);
 		endpoint->SetSyncing(false);
 		return;
 	}
@@ -1069,7 +1069,7 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 	Zone::Ptr target_zone = target_endpoint->GetZone();
 
 	if (!target_zone) {
-		ObjectLock olock2(endpoint);
+		WLock olock2(endpoint);
 		endpoint->SetSyncing(false);
 		return;
 	}
@@ -1188,7 +1188,7 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 
 		if (last_sync) {
 			{
-				ObjectLock olock2(endpoint);
+				WLock olock2(endpoint);
 				endpoint->SetSyncing(false);
 			}
 
@@ -1210,7 +1210,7 @@ void ApiListener::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& per
 
 	stats = listener->GetStatus();
 
-	ObjectLock olock(stats.second);
+	RLock olock(stats.second);
 	for (const Dictionary::Pair& kv : stats.second)
 		perfdata->Add(new PerfdataValue("api_" + kv.first, kv.second));
 

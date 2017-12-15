@@ -288,14 +288,10 @@ void WorkQueue::WorkerThreadProc(void)
 
 void WorkQueue::IncreaseTaskCount(void)
 {
-	double now = Utility::GetTime();
-
-	boost::mutex::scoped_lock lock(m_StatsMutex);
-	m_TaskStats.InsertValue(now, 1);
+	m_TaskStats.InsertValue(Utility::GetTime(), 1);
 }
 
 size_t WorkQueue::GetTaskCount(RingBuffer::SizeType span)
 {
-	boost::mutex::scoped_lock lock(m_StatsMutex);
 	return m_TaskStats.UpdateAndGetValues(Utility::GetTime(), span);
 }

@@ -227,7 +227,7 @@ void InfluxdbWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable, const
 
 	Dictionary::Ptr tags = tmpl->Get("tags");
 	if (tags) {
-		ObjectLock olock(tags);
+		RLock olock(tags);
 		for (const Dictionary::Pair& pair : tags) {
 			String missing_macro;
 			Value value = MacroProcessor::ResolveMacros(pair.second, resolvers, cr, &missing_macro);
@@ -241,7 +241,7 @@ void InfluxdbWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable, const
 
 	Array::Ptr perfdata = cr->GetPerformanceData();
 	if (perfdata) {
-		ObjectLock olock(perfdata);
+		RLock olock(perfdata);
 		for (const Value& val : perfdata) {
 			PerfdataValue::Ptr pdv;
 
@@ -335,7 +335,7 @@ void InfluxdbWriter::SendMetric(const Dictionary::Ptr& tmpl, const String& label
 
 	Dictionary::Ptr tags = tmpl->Get("tags");
 	if (tags) {
-		ObjectLock olock(tags);
+		RLock olock(tags);
 		for (const Dictionary::Pair& pair : tags) {
 			// Empty macro expansion, no tag
 			if (!pair.second.IsEmpty()) {
@@ -353,7 +353,7 @@ void InfluxdbWriter::SendMetric(const Dictionary::Ptr& tmpl, const String& label
 	{
 		bool first = true;
 
-		ObjectLock fieldLock(fields);
+		RLock fieldLock(fields);
 		for (const Dictionary::Pair& pair : fields) {
 			if (first)
 				first = false;
@@ -507,7 +507,7 @@ void InfluxdbWriter::ValidateHostTemplate(const Dictionary::Ptr& value, const Va
 
 	Dictionary::Ptr tags = value->Get("tags");
 	if (tags) {
-		ObjectLock olock(tags);
+		RLock olock(tags);
 		for (const Dictionary::Pair& pair : tags) {
 			if (!MacroProcessor::ValidateMacroString(pair.second))
 				BOOST_THROW_EXCEPTION(ValidationError(this, { "host_template", "tags", pair.first }, "Closing $ not found in macro format string '" + pair.second));
@@ -525,7 +525,7 @@ void InfluxdbWriter::ValidateServiceTemplate(const Dictionary::Ptr& value, const
 
 	Dictionary::Ptr tags = value->Get("tags");
 	if (tags) {
-		ObjectLock olock(tags);
+		RLock olock(tags);
 		for (const Dictionary::Pair& pair : tags) {
 			if (!MacroProcessor::ValidateMacroString(pair.second))
 				BOOST_THROW_EXCEPTION(ValidationError(this, { "service_template", "tags", pair.first }, "Closing $ not found in macro format string '" + pair.second));

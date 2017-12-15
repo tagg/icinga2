@@ -37,7 +37,7 @@ boost::signals2::signal<void (const Notification::Ptr&, const Checkable::Ptr&, c
 void Checkable::ResetNotificationNumbers(void)
 {
 	for (const Notification::Ptr& notification : GetNotifications()) {
-		ObjectLock olock(notification);
+		WLock olock(notification);
 		notification->ResetNotificationNumber();
 	}
 }

@@ -42,19 +42,13 @@ static Timer::Ptr l_ObjectCountTimer;
  * Default constructor for the Object class.
  */
 Object::Object(void)
-	: m_References(0), m_Mutex(0)
-#ifdef I2_DEBUG
-	, m_LockOwner(0)
-#endif /* I2_DEBUG */
 { }
 
 /**
  * Destructor for the Object class.
  */
 Object::~Object(void)
-{
-	delete reinterpret_cast<boost::recursive_mutex *>(m_Mutex);
-}
+{ }
 
 /**
  * Returns a string representation for the object.
@@ -63,26 +57,6 @@ String Object::ToString(void) const
 {
 	return "Object of type '" + GetReflectionType()->GetName() + "'";
 }
-
-#ifdef I2_DEBUG
-/**
- * Checks if the calling thread owns the lock on this object.
- *
- * @returns True if the calling thread owns the lock, false otherwise.
- */
-bool Object::OwnsLock(void) const
-{
-#ifdef _WIN32
-	DWORD tid = InterlockedExchangeAdd(&m_LockOwner, 0);
-
-	return (tid == GetCurrentThreadId());
-#else /* _WIN32 */
-	pthread_t tid = __sync_fetch_and_add(&m_LockOwner, 0);
-
-	return (tid == pthread_self());
-#endif /* _WIN32 */
-}
-#endif /* I2_DEBUG */
 
 void Object::SetField(int id, const Value&, bool, const Value&)
 {

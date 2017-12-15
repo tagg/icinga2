@@ -22,9 +22,10 @@
 
 #include "base/i2-base.hpp"
 #include "base/debug.hpp"
-#include <boost/thread/condition_variable.hpp>
+#include "base/rw_spin_lock.hpp"
 #include <boost/smart_ptr/intrusive_ptr.hpp>
 #include <vector>
+#include <atomic>
 
 using boost::intrusive_ptr;
 using boost::dynamic_pointer_cast;
@@ -128,10 +129,6 @@ public:
 	virtual void NotifyField(int id, const Value& cookie = Empty);
 	virtual Object::Ptr NavigateField(int id) const;
 
-#ifdef I2_DEBUG
-	bool OwnsLock(void) const;
-#endif /* I2_DEBUG */
-
 	static Object::Ptr GetPrototype(void);
 
 	virtual Object::Ptr Clone(void) const;
@@ -142,18 +139,11 @@ private:
 	Object(const Object& other);
 	Object& operator=(const Object& rhs);
 
-	uintptr_t m_References;
-	mutable uintptr_t m_Mutex;
+	std::atomic<uint32_t> m_References;
+	mutable rw_spin_lock m_RWLock;
 
-#ifdef I2_DEBUG
-#	ifndef _WIN32
-	mutable pthread_t m_LockOwner;
-#	else /* _WIN32 */
-	mutable DWORD m_LockOwner;
-#	endif /* _WIN32 */
-#endif /* I2_DEBUG */
-
-	friend struct ObjectLock;
+	friend struct RLock;
+	friend struct WLock;
 
 	friend void intrusive_ptr_add_ref(Object *object);
 	friend void intrusive_ptr_release(Object *object);
@@ -171,22 +161,12 @@ inline void intrusive_ptr_add_ref(Object *object)
 		TypeAddObject(object);
 #endif /* I2_LEAK_DEBUG */
 
-#ifdef _WIN32
-	InterlockedIncrement(&object->m_References);
-#else /* _WIN32 */
-	__sync_add_and_fetch(&object->m_References, 1);
-#endif /* _WIN32 */
+	object->m_References++;
 }
 
 inline void intrusive_ptr_release(Object *object)
 {
-	uintptr_t refs;
-
-#ifdef _WIN32
-	refs = InterlockedDecrement(&object->m_References);
-#else /* _WIN32 */
-	refs = __sync_sub_and_fetch(&object->m_References, 1);
-#endif /* _WIN32 */
+	uint32_t refs = --object->m_References;
 
 	if (unlikely(refs == 0)) {
 #ifdef I2_LEAK_DEBUG

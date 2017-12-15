@@ -179,7 +179,7 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 
 			if (oldValue.IsObjectType<Dictionary>()) {
 				Dictionary::Ptr oldDict = oldValue;
-				ObjectLock olock(oldDict);
+				RLock olock(oldDict);
 				for (const auto& kv : oldDict) {
 					String key = prefix + "." + kv.first;
 					if (!original_attributes->Contains(key))
@@ -189,7 +189,7 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 				/* store the new value as null */
 				if (value.IsObjectType<Dictionary>()) {
 					Dictionary::Ptr valueDict = value;
-					ObjectLock olock(valueDict);
+					RLock olock(valueDict);
 					for (const auto& kv : valueDict) {
 						String key = attr + "." + kv.first;
 						if (!original_attributes->Contains(key))
@@ -280,7 +280,7 @@ void ConfigObject::RestoreAttribute(const String& attr, bool updateVersion)
 		std::vector<String> restoredAttrs;
 
 		{
-			ObjectLock olock(original_attributes);
+			RLock olock(original_attributes);
 			for (const auto& kv : original_attributes) {
 				std::vector<String> originalTokens;
 				boost::algorithm::split(originalTokens, kv.first, boost::is_any_of("."));
@@ -351,16 +351,12 @@ bool ConfigObject::IsAttributeModified(const String& attr) const
 
 void ConfigObject::Register(void)
 {
-	ASSERT(!OwnsLock());
-
 	TypeImpl<ConfigObject>::Ptr type = static_pointer_cast<TypeImpl<ConfigObject> >(GetReflectionType());
 	type->RegisterObject(this);
 }
 
 void ConfigObject::Unregister(void)
 {
-	ASSERT(!OwnsLock());
-
 	TypeImpl<ConfigObject>::Ptr type = static_pointer_cast<TypeImpl<ConfigObject> >(GetReflectionType());
 	type->UnregisterObject(this);
 }
@@ -368,8 +364,6 @@ void ConfigObject::Unregister(void)
 void ConfigObject::Start(bool runtimeCreated)
 {
 	ObjectImpl<ConfigObject>::Start(runtimeCreated);
-
-	ObjectLock olock(this);
 
 	SetStartCalled(true);
 }
@@ -387,7 +381,7 @@ void ConfigObject::Activate(bool runtimeCreated)
 	CONTEXT("Activating object '" + GetName() + "' of type '" + GetReflectionType()->GetName() + "'");
 
 	{
-		ObjectLock olock(this);
+		WLock olock(this);
 
 		Start(runtimeCreated);
 
@@ -404,8 +398,6 @@ void ConfigObject::Stop(bool runtimeRemoved)
 {
 	ObjectImpl<ConfigObject>::Stop(runtimeRemoved);
 
-	ObjectLock olock(this);
-
 	SetStopCalled(true);
 }
 
@@ -414,7 +406,7 @@ void ConfigObject::Deactivate(bool runtimeRemoved)
 	CONTEXT("Deactivating object '" + GetName() + "' of type '" + GetReflectionType()->GetName() + "'");
 
 	{
-		ObjectLock olock(this);
+		WLock olock(this);
 
 		if (!IsActive())
 			return;
@@ -473,7 +465,7 @@ void ConfigObject::Resume(void)
 
 void ConfigObject::SetAuthority(bool authority)
 {
-	ObjectLock olock(this);
+	WLock olock(this);
 
 	if (authority && GetPaused()) {
 		SetResumeCalled(false);
@@ -508,7 +500,8 @@ void ConfigObject::DumpObjects(const String& filename, int attributeTypes)
 		if (!dtype)
 			continue;
 
-		for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
+		RLock lock(dtype->GetObjectsRWLock());
+		for (const ConfigObject::Ptr& object : dtype->GetObjectsUnlocked()) {
 			Dictionary::Ptr persistentObject = new Dictionary();
 
 			persistentObject->Set("type", type->GetName());
@@ -610,7 +603,8 @@ void ConfigObject::RestoreObjects(const String& filename, int attributeTypes)
 		if (!dtype)
 			continue;
 
-		for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
+		RLock lock(dtype->GetObjectsRWLock());
+		for (const ConfigObject::Ptr& object : dtype->GetObjectsUnlocked()) {
 			if (!object->GetStateLoaded()) {
 				object->OnStateLoaded();
 				object->SetStateLoaded(true);
@@ -632,7 +626,8 @@ void ConfigObject::StopObjects(void)
 		if (!dtype)
 			continue;
 
-		for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
+		RLock lock(dtype->GetObjectsRWLock());
+		for (const ConfigObject::Ptr& object : dtype->GetObjectsUnlocked()) {
 			object->Deactivate();
 		}
 	}
@@ -646,13 +641,14 @@ void ConfigObject::DumpModifiedAttributes(const std::function<void(const ConfigO
 		if (!dtype)
 			continue;
 
-		for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
+		RLock lock(dtype->GetObjectsRWLock());
+		for (const ConfigObject::Ptr& object : dtype->GetObjectsUnlocked()) {
 			Dictionary::Ptr originalAttributes = object->GetOriginalAttributes();
 
 			if (!originalAttributes)
 				continue;
 
-			ObjectLock olock(originalAttributes);
+			RLock olock(originalAttributes);
 			for (const Dictionary::Pair& kv : originalAttributes) {
 				String key = kv.first;
 

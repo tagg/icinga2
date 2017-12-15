@@ -71,7 +71,7 @@ void StreamLogger::Flush(void)
 
 void StreamLogger::BindStream(std::ostream *stream, bool ownsStream)
 {
-	ObjectLock olock(this);
+	boost::mutex::scoped_lock lock(m_Mutex);
 
 	if (m_OwnsStream)
 		delete m_Stream;

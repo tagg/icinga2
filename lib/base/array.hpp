@@ -49,6 +49,7 @@ public:
 
 	Array(void);
 	Array(std::initializer_list<Value> init);
+	Array(std::vector<Value>&& data);
 
 	~Array(void);
 
@@ -82,7 +83,6 @@ public:
 	static Array::Ptr FromVector(const std::vector<T>& v)
 	{
 		Array::Ptr result = new Array();
-		ObjectLock olock(result);
 		std::copy(v.begin(), v.end(), std::back_inserter(result->m_Data));
 		return result;
 	}
@@ -90,7 +90,7 @@ public:
 	template<typename T>
 	std::set<T> ToSet(void)
 	{
-		ObjectLock olock(this);
+		RLock olock(this);
 		return std::set<T>(Begin(), End());
 	}
 
@@ -98,7 +98,6 @@ public:
 	static Array::Ptr FromSet(const std::set<T>& v)
 	{
 		Array::Ptr result = new Array();
-		ObjectLock olock(result);
 		std::copy(v.begin(), v.end(), std::back_inserter(result->m_Data));
 		return result;
 	}

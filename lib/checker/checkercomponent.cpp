@@ -191,7 +191,7 @@ void CheckerComponent::CheckThreadProc(void)
 		lock.unlock();
 
 		if (forced) {
-			ObjectLock olock(checkable);
+			WLock olock(checkable);
 			checkable->SetForceNextCheck(false);
 		}
 

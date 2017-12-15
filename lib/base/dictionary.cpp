@@ -32,6 +32,10 @@ REGISTER_PRIMITIVE_TYPE(Dictionary, Object, Dictionary::GetPrototype());
 Dictionary::Dictionary(void)
 { }
 
+Dictionary::Dictionary(std::map<String, Value>&& data)
+	: m_Data(std::move(data))
+{ }
+
 Dictionary::~Dictionary(void)
 { }
 
@@ -43,7 +47,7 @@ Dictionary::~Dictionary(void)
  */
 Value Dictionary::Get(const String& key) const
 {
-	ObjectLock olock(this);
+	RLock olock(this);
 
 	auto it = m_Data.find(key);
 
@@ -62,7 +66,7 @@ Value Dictionary::Get(const String& key) const
  */
 bool Dictionary::Get(const String& key, Value *result) const
 {
-	ObjectLock olock(this);
+	RLock olock(this);
 
 	auto it = m_Data.find(key);
 
@@ -81,9 +85,29 @@ bool Dictionary::Get(const String& key, Value *result) const
  */
 void Dictionary::Set(const String& key, const Value& value)
 {
-	ObjectLock olock(this);
+	RLock lock(this);
 
-	m_Data[key] = value;
+	for (;;) {
+		auto it = m_Data.lower_bound(key);
+
+		if (it != m_Data.end() && it->first == key) {
+			if (!lock.TryUpgrade()) {
+				lock.UnlockAndSleep();
+				continue;
+			}
+
+			it->second = value;
+		} else {
+			if (!lock.TryUpgrade()) {
+				lock.UnlockAndSleep();
+				continue;
+			}
+
+			m_Data.emplace_hint(it, key, value);
+		}
+
+		break;
+	}
 }
 
 /**
@@ -94,9 +118,29 @@ void Dictionary::Set(const String& key, const Value& value)
  */
 void Dictionary::Set(const String& key, Value&& value)
 {
-	ObjectLock olock(this);
+	RLock lock(this);
 
-	m_Data[key] = std::move(value);
+	for (;;) {
+		auto it = m_Data.lower_bound(key);
+
+		if (it != m_Data.end() && it->first == key) {
+			if (!lock.TryUpgrade()) {
+				lock.UnlockAndSleep();
+				continue;
+			}
+
+			it->second.Swap(value);
+		} else {
+			if (!lock.TryUpgrade()) {
+				lock.UnlockAndSleep();
+				continue;
+			}
+
+			m_Data.emplace_hint(it, key, std::move(value));
+		}
+
+		break;
+	}
 }
 
 /**
@@ -106,7 +150,7 @@ void Dictionary::Set(const String& key, Value&& value)
  */
 size_t Dictionary::GetLength(void) const
 {
-	ObjectLock olock(this);
+	RLock olock(this);
 
 	return m_Data.size();
 }
@@ -119,7 +163,7 @@ size_t Dictionary::GetLength(void) const
  */
 bool Dictionary::Contains(const String& key) const
 {
-	ObjectLock olock(this);
+	RLock olock(this);
 
 	return (m_Data.find(key) != m_Data.end());
 }
@@ -133,8 +177,6 @@ bool Dictionary::Contains(const String& key) const
  */
 Dictionary::Iterator Dictionary::Begin(void)
 {
-	ASSERT(OwnsLock());
-
 	return m_Data.begin();
 }
 
@@ -147,8 +189,6 @@ Dictionary::Iterator Dictionary::Begin(void)
  */
 Dictionary::Iterator Dictionary::End(void)
 {
-	ASSERT(OwnsLock());
-
 	return m_Data.end();
 }
 
@@ -159,8 +199,6 @@ Dictionary::Iterator Dictionary::End(void)
  */
 void Dictionary::Remove(Dictionary::Iterator it)
 {
-	ASSERT(OwnsLock());
-
 	m_Data.erase(it);
 }
 
@@ -171,15 +209,24 @@ void Dictionary::Remove(Dictionary::Iterator it)
  */
 void Dictionary::Remove(const String& key)
 {
-	ObjectLock olock(this);
+	for (;;) {
+		RLock olock(this);
 
-	Dictionary::Iterator it;
-	it = m_Data.find(key);
+		Dictionary::Iterator it;
+		it = m_Data.find(key);
 
-	if (it == m_Data.end())
-		return;
+		if (it == m_Data.end())
+			return;
 
-	m_Data.erase(it);
+		if (!olock.TryUpgrade()) {
+			olock.UnlockAndSleep();
+			continue;
+		}
+
+		m_Data.erase(it);
+
+		break;
+	}
 }
 
 /**
@@ -187,14 +234,14 @@ void Dictionary::Remove(const String& key)
  */
 void Dictionary::Clear(void)
 {
-	ObjectLock olock(this);
+	WLock olock(this);
 
 	m_Data.clear();
 }
 
 void Dictionary::CopyTo(const Dictionary::Ptr& dest) const
 {
-	ObjectLock olock(this);
+	RLock olock(this);
 
 	for (const Dictionary::Pair& kv : m_Data) {
 		dest->Set(kv.first, kv.second);
@@ -223,7 +270,7 @@ Object::Ptr Dictionary::Clone(void) const
 {
 	Dictionary::Ptr dict = new Dictionary();
 
-	ObjectLock olock(this);
+	RLock olock(this);
 	for (const Dictionary::Pair& kv : m_Data) {
 		dict->Set(kv.first, kv.second.Clone());
 	}
@@ -239,7 +286,7 @@ Object::Ptr Dictionary::Clone(void) const
  */
 std::vector<String> Dictionary::GetKeys(void) const
 {
-	ObjectLock olock(this);
+	RLock olock(this);
 
 	std::vector<String> keys;
 
