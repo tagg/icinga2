@@ -103,7 +103,6 @@ variables are supported:
 - `ICINGA2_COMMAND_GROUP`: The command group Icinga 2 should use; defaults to `icingacmd`
 - `ICINGA2_UNITY_BUILD`: Whether to perform a unity build; defaults to `ON`
 - `ICINGA2_LTO_BUILD`: Whether to use link time optimization (LTO); defaults to `OFF`
-- `ICINGA2_PLUGINDIR`: The path for the Monitoring Plugins project binaries; defaults to `/usr/lib/nagios/plugins`
 - `ICINGA2_RUNDIR`: The location of the "run" directory; defaults to `CMAKE_INSTALL_LOCALSTATEDIR/run`
 - `CMAKE_INSTALL_SYSCONFDIR`: The configuration directory; defaults to `CMAKE_INSTALL_PREFIX/etc`
 - `ICINGA2_SYSCONFIGFILE`: Where to put the config file the initscript/systemd pulls it's dirs from;
@@ -125,6 +124,14 @@ Defaults to `OFF`.
 - `ICINGA2_WITH_PERFDATA`: Determines whether the perfdata module is built; defaults to `ON`
 - `ICINGA2_WITH_STUDIO`: Determines whether the Icinga Studio application is built; defaults to `OFF`
 - `ICINGA2_WITH_TESTS`: Determines whether the unit tests are built; defaults to `ON`
+
+Variables related to plugins, most plugins for Icinga are from the Monitoring
+Plugins project. These values depend on the default paths for these plugins
+in the operating system.
+
+- `ICINGA2_PLUGINPATH`: A list of paths to search for plugins; defaults to `/etc/icinga2/scripts:/usr/lib/nagios/plugins:/usr/lib/icinga/plugins`
+  (handled as Array inside Icinga 2)
+- `ICINGA2_PLUGINDIR`: The default path for plugins that was used in CheckCommands; defaults to `/usr/lib/nagios/plugins`
 
 CMake determines the Icinga 2 version number using `git describe` if the
 source directory is contained in a Git repository. Otherwise the version number

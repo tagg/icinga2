@@ -61,6 +61,9 @@ void IcingaApplication::StaticInitialize(void)
 	ScriptGlobal::Set("NodeName", node_name);
 
 	ScriptGlobal::Set("ApplicationType", "IcingaApplication");
+
+	DeclarePluginDir(ICINGA_PLUGINDIR);
+	DeclarePluginPath(ICINGA_PLUGINPATH);
 }
 
 REGISTER_STATSFUNCTION(IcingaApplication, &IcingaApplication::StatsFunc);
@@ -289,6 +292,33 @@ bool IcingaApplication::ResolveMacro(const String& macro, const CheckResult::Ptr
 String IcingaApplication::GetNodeName(void) const
 {
 	return ScriptGlobal::Get("NodeName");
+}
+
+void IcingaApplication::DeclarePluginDir(const String& pluginDir)
+{
+	if (!ScriptGlobal::Exists("PluginDir"))
+		ScriptGlobal::Set("PluginDir", pluginDir);
+}
+
+String IcingaApplication::GetPluginDir(void)
+{
+	return ScriptGlobal::Get("PluginDir");
+}
+
+void IcingaApplication::DeclarePluginPath(const String& pluginPath)
+{
+	if (!ScriptGlobal::Exists("PluginPath"))
+		ScriptGlobal::Set("PluginPath", Array::FromVector(String(pluginPath).Split(":")));
+}
+
+Value IcingaApplication::GetPluginPath(void)
+{
+	Array::Ptr path = ScriptGlobal::Get("PluginPath");
+	String dir = GetPluginDir();
+	if (!dir.IsEmpty() && !path->Contains(dir))
+		path->Add(dir);
+
+	return path;
 }
 
 void IcingaApplication::ValidateVars(const Dictionary::Ptr& value, const ValidationUtils& utils)

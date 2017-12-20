@@ -3,16 +3,30 @@
  * the other configuration files.
  */
 
-/* The directory which contains the plugins from the Monitoring Plugins project. */
+/*
+ * Array of directories which can contain plugins from the Monitoring Plugins
+ * project or other sources.
+ */
+const PluginPath = "@ICINGA2_PLUGINPATH@".split(":")
+
+/*
+ * Default path to find plugins from the Monitoring Plugins project.
+ *
+ * This value is DEPRECATED in Icinga >= 2.9.0, and no longer used in the ITL!
+ */
 const PluginDir = "@ICINGA2_PLUGINDIR@"
 
 /* The directory which contains the Manubulon plugins.
  * Check the documentation, chapter "SNMP Manubulon Plugin Check Commands", for details.
+ *
+ * This value is DEPRECATED in Icinga >= 2.9.0, and no longer used in the ITL!
  */
 const ManubulonPluginDir = "@ICINGA2_PLUGINDIR@"
 
 /* The directory which you use to store additional plugins which ITL provides user contributed command definitions for.
  * Check the documentation, chapter "Plugins Contribution", for details.
+ *
+ * This value is DEPRECATED in Icinga >= 2.9.0, and no longer used in the ITL!
  */
 const PluginContribDir = "@ICINGA2_PLUGINDIR@"
 

@@ -52,6 +52,12 @@ public:
 
 	String GetNodeName(void) const;
 
+	static void DeclarePluginDir(const String& pluginDir);
+	static String GetPluginDir(void);
+
+	static void DeclarePluginPath(const String& pluginPath);
+	static Value GetPluginPath(void);
+
 	virtual void ValidateVars(const Dictionary::Ptr& value, const ValidationUtils& utils) override;
 
 private:
