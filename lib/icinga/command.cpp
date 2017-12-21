@@ -20,12 +20,29 @@
 #include "icinga/command.hpp"
 #include "icinga/command.tcpp"
 #include "icinga/macroprocessor.hpp"
+#include "icinga/pluginutility.hpp"
 #include "base/exception.hpp"
 #include "base/objectlock.hpp"
 
 using namespace icinga;
 
 REGISTER_TYPE(Command);
+
+Value Command::GetCommandLineResolved() const
+{
+	Value resolved = ObjectImpl<Command>::GetCommandLineResolved();
+	Value commandLine = GetCommandLine();
+
+	if (resolved.IsEmpty() && !commandLine.IsEmpty()) {
+		resolved = PluginUtility::ResolveCommandLine(commandLine);
+
+		if (!resolved.IsEmpty()) {
+			const_cast<Command *>(this)->SetCommandLineResolved(resolved);
+		}
+	}
+
+	return resolved;
+}
 
 void Command::Validate(int types, const ValidationUtils& utils)
 {

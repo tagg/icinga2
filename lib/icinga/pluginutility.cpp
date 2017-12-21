@@ -17,6 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
+#include "icinga/icingaapplication.hpp"
 #include "icinga/pluginutility.hpp"
 #include "icinga/macroprocessor.hpp"
 #include "base/logger.hpp"
@@ -29,6 +30,7 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/filesystem.hpp>
 
 using namespace icinga;
 
@@ -37,7 +39,10 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros,
 	const std::function<void(const Value& commandLine, const ProcessResult&)>& callback)
 {
-	Value raw_command = commandObj->GetCommandLine();
+	Value raw_command = commandObj->GetCommandLineResolved();
+	if (raw_command.IsEmpty()) {
+		raw_command = commandObj->GetCommandLine();
+	}
 	Dictionary::Ptr raw_arguments = commandObj->GetArguments();
 
 	Value command;
@@ -216,4 +221,55 @@ String PluginUtility::FormatPerfdata(const Array::Ptr& perfdata)
 	}
 
 	return result.str();
+}
+
+Value PluginUtility::LookupPlugin(const String& executable)
+{
+	Value pluginPath = IcingaApplication::GetPluginPath();
+	if (pluginPath.IsEmpty() || !pluginPath.IsObjectType<Array>()) {
+		Log(LogDebug, "PluginUtility", "Can not lookup command path, PluginPath is empty or not an Array!");
+		return Empty;
+	}
+
+	Array::Ptr pathList = pluginPath;
+	ObjectLock olock(pathList);
+	String script;
+
+	for (const String& path : pathList) {
+		if (!Utility::PathIsExecutable(path))
+			continue;
+
+		script = Utility::ConcatPath({ path, executable });
+		Log(LogDebug, "PluginUtility") << "Looking for plugin at: " << script;
+
+		if (Utility::PathIsExecutable(script)) {
+			Log(LogDebug, "PluginUtility") << "Executable plugin found at: " << script;
+			return script;
+		}
+	}
+
+	Log(LogDebug, "PluginUtility") << "No executable plugin found for: " << executable;
+	return Empty;
+}
+
+Value PluginUtility::ResolveCommandLine(Value commandLine)
+{
+	if (commandLine.IsObjectType<String>())
+		return commandLine;
+	else if (commandLine.IsEmpty() || !commandLine.IsObjectType<Array>())
+		return Empty;
+
+	Array::Ptr command = commandLine;
+	String executable = command->Get(0);
+
+	if (Utility::IsAbsolutePath(executable))
+		return command;
+
+	Value resolvedExecutable = LookupPlugin(executable);
+	if (!resolvedExecutable.IsEmpty()) {
+		command->Set(0, resolvedExecutable);
+		return command;
+	} else {
+		return Empty;
+	}
 }

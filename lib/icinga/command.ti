@@ -28,6 +28,7 @@ namespace icinga
 abstract class Command : CustomVarObject
 {
 	[config] Value command (CommandLine);
+	[virtual] Value command_resolved (CommandLineResolved);
 	[config] Value arguments;
 	[config] int timeout {
 		default {{{ return 60; }}}

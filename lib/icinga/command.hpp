@@ -39,6 +39,8 @@ public:
 
 	//virtual Dictionary::Ptr Execute(const Object::Ptr& context) = 0;
 
+	virtual Value GetCommandLineResolved() const override;
+
 	virtual void Validate(int types, const ValidationUtils& utils) override;
 };
 
