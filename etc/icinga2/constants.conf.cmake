@@ -7,7 +7,7 @@
  * Array of directories which can contain plugins from the Monitoring Plugins
  * project or other sources.
  */
-const PluginPath = "@ICINGA2_PLUGINPATH@".split(":")
+const PluginPath = @ICINGA2_PLUGINPATH_ESCAPED@
 
 /*
  * Default path to find plugins from the Monitoring Plugins project.
