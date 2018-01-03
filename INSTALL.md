@@ -114,8 +114,6 @@ defaults to `CMAKE_INSTALL_PREFIX/etc/sysconfig/icinga2`
 and the SysV initscript in parallel, regardless of how `USE_SYSTEMD` is set.
 Only use this for special packaging purposes and if you know what you are doing.
 Defaults to `OFF`.
-- `ICINGA2_WITH_MYSQL`: Determines whether the MySQL IDO module is built; defaults to `ON`
-- `ICINGA2_WITH_PGSQL`: Determines whether the PostgreSQL IDO module is built; defaults to `ON`
 - `ICINGA2_WITH_CHECKER`: Determines whether the checker module is built; defaults to `ON`
 - `ICINGA2_WITH_COMPAT`: Determines whether the compat module is built; defaults to `ON`
 - `ICINGA2_WITH_DEMO`: Determines whether the demo module is built; defaults to `OFF`
@@ -125,6 +123,31 @@ Defaults to `OFF`.
 - `ICINGA2_WITH_PERFDATA`: Determines whether the perfdata module is built; defaults to `ON`
 - `ICINGA2_WITH_STUDIO`: Determines whether the Icinga Studio application is built; defaults to `OFF`
 - `ICINGA2_WITH_TESTS`: Determines whether the unit tests are built; defaults to `ON`
+
+### MySQL variables for CMake
+
+The following settings can be tuned for the MySQL / MariaDB IDO feature.
+
+- `ICINGA2_WITH_MYSQL`: Determines whether the MySQL IDO module is built; defaults to `ON`
+- `MYSQL_CLIENT_LIBS`: Client implementation used (mysqlclient / mariadbclient); defaults to `mysqlclient`
+- `MYSQL_DIR`: Directory containing the mysqlclient libraries; default empty -
+  looking up various common paths like `/usr/lib/mysql`
+- `MYSQL_INCLUDE_DIR`: Directory containing include files for the mysqlclient; default empty -
+  checking multiple paths like `/usr/include/mysql`
+
+See [FindMySQL.cmake](third-party/cmake/FindMySQL.cmake) for the implementation.
+
+### PostgreSQL variables for CMake
+
+The following settings can be tuned for the PostgreSQL IDO feature.
+
+- `ICINGA2_WITH_PGSQL`: Determines whether the PostgreSQL IDO module is built; defaults to `ON`
+- `PostgreSQL_INCLUDE_DIR`: Top-level directory containing the PostgreSQL include directories
+- `PostgreSQL_LIBRARY_DIR`: Top-level directory containing the PostgreSQL libraries
+
+See [FindMySQL.cmake](third-party/cmake/FindPostgreSQL.cmake) for the implementation.
+
+### Build version
 
 CMake determines the Icinga 2 version number using `git describe` if the
 source directory is contained in a Git repository. Otherwise the version number
@@ -297,7 +320,7 @@ Or if your distribution uses openrc (like Alpine):
 	Usage: /etc/init.d/icinga2 {start|stop|restart|reload|checkconfig|status}
 
 Note: the openrc's init.d is not shipped by default.
-A working init.d with openrc can be found here: (https://git.alpinelinux.org/cgit/aports/plain/community/icinga2/icinga2.initd). If you have customized some path, edit the file and adjust it according with your setup. 
+A working init.d with openrc can be found here: (https://git.alpinelinux.org/cgit/aports/plain/community/icinga2/icinga2.initd). If you have customized some path, edit the file and adjust it according with your setup.
 Those few steps can be followed:
 
     # wget https://git.alpinelinux.org/cgit/aports/plain/community/icinga2/icinga2.initd
